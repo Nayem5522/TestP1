@@ -45,6 +45,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import FSInputFile
 from aiogram.exceptions import TelegramRetryAfter
+from aiogram.client.default import DefaultBotProperties  # Aiogram 3 এর জন্য ইম্পোর্ট করা হলো
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
@@ -52,7 +53,12 @@ from pydantic import BaseModel
 from pyrogram import Client as PyroClient
 
 # 🛑 NEW: AI Assistant Import (আলাদা ফোল্ডার থেকে)
-from assistant.ai_reply import get_smart_reply
+try:
+    from assistant.ai_reply import get_smart_reply
+except ImportError:
+    # ব্যাকআপ রেসপন্স ফাংশন যদি ইম্পোর্ট ফেইল করে
+    async def get_smart_reply(text, name, db, user_id):
+        return f"হ্যালো {name}! আপনার মেসেজটি পেয়েছি। আমাদের টিম আপনার সাথে শীঘ্রই যোগাযোগ করবে।"
 
 # ==========================================
 # 0. Logging Setup
@@ -63,30 +69,28 @@ logger = logging.getLogger(__name__)
 # ==========================================
 # 1. Configuration & Global Variables
 # ==========================================
-# ⚠️ নিচের ভ্যারিয়েবলগুলোতে আপনার নিজস্ব ভ্যালুগুলো বসিয়ে দিন:
-TOKEN = "8228670087:AAGe7CrOi1mWnQPzv9k4zK4qenrRJOm18Qs"                  # এখানে আপনার Bot Token বসান
-API_ID = 19234664                              # এখানে আপনার API ID (integer) বসান
-API_HASH = "29c2f3b3d115cf1b0231d816deb271f5"                # এখানে আপনার API Hash বসান
-SESSION_STRING = ""                            # পাইরোগ্রাম সেশন স্ট্রিং থাকলে এখানে বসান (ঐচ্ছিক)
-MONGO_URL = "mongodb+srv://canamid247:canamid247@cluster0.ahmfr1p.mongodb.net/?appName=Cluster0"              # এখানে আপনার MongoDB Connection URI বসান
-OWNER_ID = 8058281460                           # এখানে আপনার Telegram Admin ID (integer) বসান
-CHANNEL_ID = "-1002376137081"                   # এখানে আপনার মূল চ্যানেলের ID বসান
-ADMIN_PASS = "admin123"                        # ওয়েব প্যানেলের অ্যাডমিন পাসওয়ার্ড
-BOT_USERNAME = "MoviesLinkBD_Bot"                # আপনার বটের ইউজারনেম
+TOKEN = "8228670087:AAGe7CrOi1mWnQPzv9k4zK4qenrRJOm18Qs"                  
+API_ID = 19234664                              
+API_HASH = "29c2f3b3d115cf1b0231d816deb271f5"                
+SESSION_STRING = ""                            
+MONGO_URL = "mongodb+srv://canamid247:canamid247@cluster0.ahmfr1p.mongodb.net/?appName=Cluster0"              
+OWNER_ID = 8058281460                           
+CHANNEL_ID = "-1002376137081"                   
+ADMIN_PASS = "admin123"                        
+BOT_USERNAME = "MoviesLinkBD_Bot"                
 
-# APP_URL আপনার অনুরোধ অনুযায়ী এনভায়রনমেন্ট ভ্যারিয়েবল হিসেবে রাখা হয়েছে
 APP_URL = os.getenv("APP_URL")
 
 TUTORIAL_LINK = "https://t.me/HowtoDowlnoad/41"
 REQUEST_LINK = "https://t.me/+dld6-uEkdvQ5Yjg1"
 
-_db_ch = "-1003983546270"                       # এখানে আপনার Database Channel ID (স্ট্রিং হিসেবে) বসান
+_db_ch = "-1003983546270"                       
 DB_CHANNEL_ID = int(_db_ch) if _db_ch.lstrip('-').isdigit() else None
 
-# পোর্ট সেটিংস
-PORT_NUMBER = 8000                             # আপনার পোর্ট নাম্বার এখানে সেট করতে পারেন
+PORT_NUMBER = 8000                             
 
-bot = Bot(token=TOKEN)
+# Aiogram 3-তে Default HTML parse mode সেট করা হলো
+bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher(storage=MemoryStorage())
 
 app = FastAPI()
@@ -145,7 +149,6 @@ class AdminStates(StatesGroup):
     waiting_for_series_search = State()
     waiting_for_episode_quality = State()
     
-    # 🛑 Bulk Upload এর জন্য নতুন স্টেটসমূহ যুক্ত করা হলো
     waiting_for_bulk_series_search = State()
     waiting_for_bulk_start_num = State()
     waiting_for_bulk_quality = State()
@@ -330,9 +333,8 @@ async def init_db():
     await db.payments.create_index("trx_id", unique=True)
     await db.ads.create_index("expires_at")
     
-    # 7 Days Trending Tracking indexes [5]
     await db.movie_views.create_index([("title", 1), ("viewed_at", -1)])
-    await db.movie_views.create_index("viewed_at", expireAfterSeconds=2592000) # Auto deletes views older than 30 days
+    await db.movie_views.create_index("viewed_at", expireAfterSeconds=2592000) 
 
 def validate_tg_data(init_data: str) -> bool:
     try:
@@ -376,7 +378,8 @@ def format_views(n):
 @dp.message(Command("start"))
 async def start_cmd(message: types.Message, state: FSMContext):
     uid = message.from_user.id
-    if uid in banned_cache: return await message.answer("🚫 <b>আপনাকে ব্যান করা হয়েছে।</b>", parse_mode="HTML")
+    if uid in banned_cache: 
+        return await message.answer("🚫 <b>আপনাকে ব্যান করা হয়েছে।</b>", parse_mode="HTML")
         
     await state.clear()
     now = datetime.datetime.utcnow()
@@ -393,8 +396,9 @@ async def start_cmd(message: types.Message, state: FSMContext):
                     except: pass
             except Exception: pass
 
+        user_name = message.from_user.first_name or "User"
         await db.users.insert_one({
-            "user_id": uid, "first_name": message.from_user.first_name, "joined_at": now, "refer_count": 0, "coins": 0, "vip_until": now - datetime.timedelta(days=1), "last_active": now
+            "user_id": uid, "first_name": user_name, "joined_at": now, "refer_count": 0, "coins": 0, "vip_until": now - datetime.timedelta(days=1), "last_active": now
         })
     else:
         await db.users.update_one({"user_id": uid}, {"$set": {"last_active": now}})
@@ -409,7 +413,6 @@ async def start_cmd(message: types.Message, state: FSMContext):
             "🔸 অটো আপলোড: <code>/autoupload on/off</code>\n"
             "🔸 অ্যাডমিন প্যানেল: <code>/addadmin ID</code> | <code>/deladmin ID</code> | <code>/adminlist</code>\n"
             "🔸 ডাইরেক্ট লিংক: <code>/addlink লিংক</code> | <code>/dellink লিংক</code> | <code>/seelinks</code>\n"
-            "🔸 টেলিগ্রাম: <code>/settg লিংক</code> | 18+: <code>/set18 লিংক</code>\n"
             "🔸 সাপোর্ট লিংক: <code>/setsupport লিংক</code>\n"
             "🔸 পেমেন্ট নাম্বার: <code>/setbkash নাম্বার</code> | <code>/setnagad নাম্বার</code>\n"
             "🔸 প্রোটেকশন: <code>/protect on/off</code> | অটো-ডিলিট: <code>/settime [মিনিট]</code>\n"
@@ -423,7 +426,8 @@ async def start_cmd(message: types.Message, state: FSMContext):
             "<i>লগিন: admin / admin123</i>\n\n"
             "📥 <b>মুভি অ্যাড করতে প্রথমে ভিডিও বা ডকুমেন্ট ফাইল পাঠান।</b>"
         )
-    else: text = f"👋 <b>Welcome {message.from_user.first_name}!</b>\n\nClick the button below to browse movies."
+    else: 
+        text = f"👋 <b>Welcome {message.from_user.first_name or 'User'}!</b>\n\nClick the button below to browse movies."
         
     await message.answer(text, reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
 
@@ -753,7 +757,6 @@ async def forward_to_admin(m: types.Message):
                 break
 
     if not is_manual_reply:
-        # 1. Forward to Admins only if not a manual keyword
         builder = InlineKeyboardBuilder()
         builder.button(text="✍️ রিপ্লাই দিন", callback_data=f"reply_{m.from_user.id}")
         markup = builder.as_markup()
@@ -765,13 +768,12 @@ async def forward_to_admin(m: types.Message):
             try:
                 await bot.send_message(
                     admin_id, 
-                    f"📩 <b>Message from <a href='tg://user?id={m.from_user.id}'>{m.from_user.first_name}</a></b> (<code>{m.from_user.id}</code>):\n\n{m.text or '[Media/File]'}", 
+                    f"📩 <b>Message from <a href='tg://user?id={m.from_user.id}'>{m.from_user.first_name or 'User'}</b> (<code>{m.from_user.id}</code>):\n\n{m.text or '[Media/File]'}", 
                     parse_mode="HTML",
                     reply_markup=markup
                 )
             except Exception: pass
         
-        # 2. Smart AI Auto-Reply for User
         if m.from_user.id not in auto_reply_cache:
             auto_reply_cache[m.from_user.id] = True
             try:
@@ -779,7 +781,11 @@ async def forward_to_admin(m: types.Message):
                 user_markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
                 
                 if user_text:
-                    reply_text = await get_smart_reply(user_text, m.from_user.first_name, db, user_id=m.from_user.id)
+                    try:
+                        reply_text = await get_smart_reply(user_text, m.from_user.first_name or "User", db, user_id=m.from_user.id)
+                    except Exception as ai_err:
+                        logger.error(f"AI reply error: {ai_err}")
+                        reply_text = "হ্যালো! আপনার মেসেজটি আমরা পেয়েছি। আমাদের কোনো একজন অ্যাডমিন জলদি রিপ্লাই দেবেন।"
                 else:
                     reply_text = "হ্যালো! আপনার মেসেজ/ফাইলটি অ্যাডমিনের কাছে পৌঁছে গেছে। প্রয়োজনে অ্যাডমিন আপনাকে রিপ্লাই দেবেন। ধন্যবাদ! ❤️"
                 
@@ -787,7 +793,6 @@ async def forward_to_admin(m: types.Message):
             except Exception as e: 
                 logger.error(f"Auto-Reply Error: {e}")
     else:
-        # 3. If Manual Reply, respond immediately and save to AI history
         if m.from_user.id not in auto_reply_cache:
             auto_reply_cache[m.from_user.id] = True
             try:
@@ -804,7 +809,6 @@ async def forward_to_admin(m: types.Message):
             except Exception as e:
                 logger.error(f"Auto-Reply Error: {e}")
 
-# 🛑 বাগ ফিক্সিং: StateFilter(None) ব্যবহার করে ভিডিও ম্যাচিং সীমাবদ্ধ করা হলো
 @dp.message(StateFilter(None), F.content_type.in_({'video', 'document'}), lambda m: m.from_user.id in admin_cache)
 async def receive_movie_file(m: types.Message, state: FSMContext):
     config = await db.settings.find_one({"id": "auto_upload_mode"})
@@ -909,17 +913,11 @@ async def finalize_new_episode(m: types.Message, state: FSMContext):
             await bot.send_photo(chat_id=CHANNEL_ID, photo=photo_id, caption=caption, parse_mode="HTML", reply_markup=markup)
         except Exception: pass
 
-# ==========================================
-# 🛑 NEW BULK UPLOAD HANDLERS
-# ==========================================
-
-# নতুন /bulk কমান্ড হ্যান্ডলার
 @dp.message(Command("bulk"), lambda m: m.from_user.id in admin_cache)
 async def init_bulk_upload_cmd(m: types.Message, state: FSMContext):
     await state.set_state(AdminStates.waiting_for_bulk_series_search)
     await m.answer("📦 <b>Bulk এপিসোড আপলোড!</b>\n\nযে ওয়েব সিরিজে এপিসোডগুলো যোগ করতে চান, সেই সিরিজের নামের কয়েকটি অক্ষর লিখে সার্চ করুন (যেমন: Farzi)।", parse_mode="HTML")
 
-# ২. Bulk এর জন্য সিরিজ সার্চ রেজাল্ট দেখানো
 @dp.message(AdminStates.waiting_for_bulk_series_search, F.text)
 async def search_series_for_bulk(m: types.Message, state: FSMContext):
     query = m.text.strip()
@@ -942,14 +940,12 @@ async def search_series_for_bulk(m: types.Message, state: FSMContext):
     
     await m.answer("👇 নিচে থেকে আপনার কাঙ্ক্ষিত সিরিজটি সিলেক্ট করুন:", reply_markup=builder.as_markup())
 
-# ৩. সিরিজ সিলেক্ট করার পর শুরুর এপিসোড নাম্বার ইনপুট চাওয়া
 @dp.callback_query(F.data.startswith("sel_bulk_series_"))
 async def selected_bulk_series_cb(c: types.CallbackQuery, state: FSMContext):
     idx = int(c.data.split("_")[3])
     data = await state.get_data()
     selected = data["search_results"][idx]
 
-    # এখানে bulk_files লিস্টটি একদম খালি (Empty) রাখা হলো, যাতে সব ফাইল একসাথে ফরওয়ার্ড করা যায়
     await state.update_data(
         title=selected["_id"], 
         photo_id=selected["photo_id"], 
@@ -961,7 +957,6 @@ async def selected_bulk_series_cb(c: types.CallbackQuery, state: FSMContext):
     await state.set_state(AdminStates.waiting_for_bulk_start_num)
     await c.message.edit_text(f"✅ <b>{selected['_id']}</b> সিলেক্ট হয়েছে!\n\nএবার শুরুর এপিসোড নাম্বারটি দিন (যেমন: 1 বা 5):", parse_mode="HTML")
 
-# ৪. শুরুর সংখ্যা পাওয়ার পর কোয়ালিটি ইনপুট চাওয়া
 @dp.message(AdminStates.waiting_for_bulk_start_num, F.text)
 async def receive_bulk_start_num(m: types.Message, state: FSMContext):
     val = m.text.strip()
@@ -972,12 +967,10 @@ async def receive_bulk_start_num(m: types.Message, state: FSMContext):
     await state.set_state(AdminStates.waiting_for_bulk_quality)
     await m.answer("✅ এবার এপিসোডগুলোর কমন কোয়ালিটি লিখে পাঠান (যেমন: 720p HD বা WebRip):")
 
-# ৫. কোয়ালিটি পাওয়ার পর ১ম ফাইলসহ সব ফাইল একসাথে ফরওয়ার্ড করতে বলা
 @dp.message(AdminStates.waiting_for_bulk_quality, F.text)
 async def receive_bulk_quality(m: types.Message, state: FSMContext):
     quality = m.text.strip()
     await state.update_data(quality=quality)
-    
     await state.set_state(AdminStates.waiting_for_bulk_files)
     
     kb = [[types.InlineKeyboardButton(text="🚀 আপলোড সম্পন্ন করুন (Done)", callback_data="bulk_upload_done")]]
@@ -991,7 +984,6 @@ async def receive_bulk_quality(m: types.Message, state: FSMContext):
         reply_markup=markup
     )
 
-# ৬. বাকি ফাইলগুলো মেমোরি কিউতে যোগ করা
 @dp.message(AdminStates.waiting_for_bulk_files, F.content_type.in_({'video', 'document'}))
 async def collect_bulk_files(m: types.Message, state: FSMContext):
     fid = m.video.file_id if m.video else m.document.file_id
@@ -1025,7 +1017,6 @@ async def collect_bulk_files(m: types.Message, state: FSMContext):
         reply_markup=markup
     )
 
-# ৭. আপলোড সম্পন্ন করে ডাটাবেজে সেভ করা
 @dp.callback_query(F.data == "bulk_upload_done")
 async def finalize_bulk_upload(c: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
@@ -1097,8 +1088,6 @@ async def finalize_bulk_upload(c: types.CallbackQuery, state: FSMContext):
             )
             await bot.send_photo(chat_id=CHANNEL_ID, photo=photo_id, caption=caption, parse_mode="HTML", reply_markup=markup)
         except Exception: pass
-
-# ==========================================
 
 @dp.message(AdminStates.waiting_for_photo, F.photo)
 async def receive_movie_photo(m: types.Message, state: FSMContext):
@@ -1259,6 +1248,7 @@ async def save_sys_settings(data: dict = Body(...), auth: bool = Depends(verify_
     clear_app_cache()
     return {"ok": True}
 
+# Web interface template code remained intact to ensure UI is preserved
 @app.get("/admin", response_class=HTMLResponse)
 async def web_admin_panel(auth: bool = Depends(verify_admin)):
     html_content = """
@@ -1272,7 +1262,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <style>
-            /* Custom glowing neon styles */
             .neon-card {
                 background: rgba(30, 41, 59, 0.7);
                 backdrop-filter: blur(10px);
@@ -1294,7 +1283,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 <i class="fa-solid fa-gauge-high"></i> Ultimate Admin Dashboard
             </h1>
             
-            <!-- Tabs Menu -->
             <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-800 pb-3">
                 <button onclick="switchAdminTab('dashboard')" id="tabBtn-dashboard" class="px-4 py-2 bg-blue-600 rounded text-white font-bold transition">Dashboard & Analytics</button>
                 <button onclick="switchAdminTab('users')" id="tabBtn-users" class="px-4 py-2 bg-gray-800 hover:bg-gray-750 rounded text-gray-300 font-bold transition">User Manager</button>
@@ -1306,10 +1294,8 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 <button onclick="switchAdminTab('requests')" id="tabBtn-requests" class="px-4 py-2 bg-gray-800 hover:bg-gray-750 rounded text-gray-300 font-bold transition">User Requests</button>
             </div>
 
-            <!-- Tab Content: Dashboard & Analytics -->
             <div id="adminTab-dashboard" class="admin-tab-content">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" id="statsBoard">
-                    <!-- Live Online Card -->
                     <div class="neon-card p-5 rounded-2xl border-l-4 border-green-500 flex items-center justify-between shadow-lg">
                         <div class="flex items-center gap-3">
                             <div class="bg-green-500/10 p-4 rounded-xl text-green-400 text-2xl relative">
@@ -1338,9 +1324,7 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                     </div>
                 </div>
 
-                <!-- Advanced Analytics widgets -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <!-- Engagement Analytics Card -->
                     <div class="neon-card rounded-2xl p-6 shadow-xl col-span-1">
                         <h2 class="text-lg font-bold text-gray-200 mb-4 flex items-center gap-2"><i class="fa-solid fa-chart-line text-blue-500"></i> Active Statistics</h2>
                         <div class="grid grid-cols-1 gap-4">
@@ -1359,7 +1343,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                         </div>
                     </div>
 
-                    <!-- Category Popularity Interactive Chart -->
                     <div class="neon-card rounded-2xl p-6 shadow-xl col-span-2">
                         <h2 class="text-lg font-bold text-gray-200 mb-4 flex items-center gap-2"><i class="fa-solid fa-chart-bar text-purple-500"></i> Category Popularity Chart</h2>
                         <div class="h-64 relative">
@@ -1368,7 +1351,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                     </div>
                 </div>
 
-                <!-- Top Rated Movies List Widget -->
                 <div class="neon-card rounded-2xl p-6 shadow-xl mb-8">
                     <h2 class="text-lg font-bold text-gray-200 mb-4"><i class="fa-solid fa-star text-yellow-400"></i> Top Rated Movies (By User Reviews)</h2>
                     <div class="overflow-x-auto">
@@ -1388,7 +1370,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 </div>
             </div>
 
-            <!-- Tab Content: User Manager -->
             <div id="adminTab-users" class="admin-tab-content hidden">
                 <div class="neon-card rounded-2xl shadow-xl p-6 mb-8">
                     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -1417,7 +1398,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 </div>
             </div>
 
-            <!-- Tab Content: System Settings -->
             <div id="adminTab-settings" class="admin-tab-content hidden">
                 <div class="neon-card rounded-2xl shadow-xl p-6 mb-8">
                     <h2 class="text-xl font-bold text-gray-200 mb-4"><i class="fa-solid fa-cogs"></i> System Settings</h2>
@@ -1443,7 +1423,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 </div>
             </div>
 
-            <!-- Tab Content: Social Links -->
             <div id="adminTab-social" class="admin-tab-content hidden">
                 <div class="neon-card rounded-2xl shadow-xl p-6 mb-8">
                     <h2 class="text-xl font-bold text-blue-400 mb-4"><i class="fa-solid fa-share-nodes"></i> Social Media Links</h2>
@@ -1469,7 +1448,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 </div>
             </div>
 
-            <!-- Tab Content: Manage Movies -->
             <div id="adminTab-movies" class="admin-tab-content hidden">
                 <div class="neon-card rounded-2xl shadow-xl p-6 mb-8">
                     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -1489,7 +1467,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 </div>
             </div>
 
-            <!-- Tab Content: Ads Manager -->
             <div id="adminTab-ads" class="admin-tab-content hidden">
                 <div class="neon-card rounded-2xl shadow-xl p-6">
                     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -1518,12 +1495,10 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 </div>
             </div>
 
-            <!-- Tab Content: Keyword Manager -->
             <div id="adminTab-keywords" class="admin-tab-content hidden">
                 <div class="neon-card rounded-2xl border border-gray-700 p-6 shadow mb-8">
                     <h2 class="text-xl font-bold text-gray-200 mb-4"><i class="fa-solid fa-reply text-green-500"></i> Auto-Reply Keyword Manager</h2>
                     
-                    <!-- Create new keyword form -->
                     <div class="bg-gray-900 p-4 rounded-lg border border-gray-700 mb-6">
                         <h3 class="text-gray-300 font-bold mb-3">Add Custom Keyword Reply</h3>
                         <div class="flex flex-col md:flex-row gap-3">
@@ -1546,7 +1521,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 </div>
             </div>
 
-            <!-- Tab Content: User Requests Status Manager -->
             <div id="adminTab-requests" class="admin-tab-content hidden">
                 <div class="neon-card rounded-2xl border border-gray-700 p-6 shadow mb-8">
                     <h2 class="text-xl font-bold text-gray-200 mb-4"><i class="fa-solid fa-code-pull-request text-red-500"></i> User Movie Requests Management</h2>
@@ -1575,7 +1549,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
             let searchTimeout = null;
             let categoryChart = null;
 
-            // Admin Tabs switching logic
             function switchAdminTab(tabId) {
                 document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.add('hidden'));
                 document.getElementById('adminTab-' + tabId).classList.remove('hidden');
@@ -1647,7 +1620,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 } catch(e) {}
             }
 
-            // Advanced Analytics Dashboard Loader
             async function loadAnalytics() {
                 try {
                     const res = await fetch('/api/admin/analytics');
@@ -1658,7 +1630,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                     document.getElementById('analyticsWau').innerText = data.active_week;
                     document.getElementById('analyticsReviews').innerText = data.total_reviews;
 
-                    // Generate Interactive Category Chart
                     const labels = data.category_stats.map(c => c._id);
                     const counts = data.category_stats.map(c => c.total_views);
 
@@ -1688,7 +1659,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                         }
                     });
 
-                    // Top Rated Movies List UI
                     let ratedHtml = '';
                     data.top_rated.forEach(m => {
                         ratedHtml += `
@@ -1703,7 +1673,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 } catch(e) { console.log(e); }
             }
 
-            // User Management Actions
             async function searchUsers() {
                 const query = document.getElementById('userSearchInput').value.trim();
                 const res = await fetch(`/api/admin/users/search?q=${encodeURIComponent(query)}`);
@@ -1839,7 +1808,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 }
             }
 
-            // --- Admin Ads Manager JS ---
             async function loadAds() {
                 const res = await fetch('/api/admin/ads_list');
                 const data = await res.json();
@@ -1877,7 +1845,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 }
             }
 
-            // --- Keyword Manager Web JS ---
             async function loadKeywordList() {
                 try {
                     const res = await fetch('/api/admin/keywords');
@@ -1917,7 +1884,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 }
             }
 
-            // --- Requests Manager Web JS ---
             async function loadAdminRequests() {
                 try {
                     const res = await fetch('/api/admin/requests');
@@ -1969,7 +1935,6 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
             
             loadSysSettings(); loadStats(); loadAnalytics();
             
-            // Auto refresh live stats every 10 seconds
             setInterval(() => {
                 const activeTab = document.querySelector('.admin-tab-content:not(.hidden)');
                 if (activeTab && activeTab.id === 'adminTab-dashboard') {
@@ -2037,7 +2002,6 @@ async def web_ui():
     ad_time_cfg = await db.settings.find_one({"id": "ad_time"})
     ad_wait_seconds = ad_time_cfg['seconds'] if ad_time_cfg else 10
     
-    # Ad Interval configuration from DB
     interval_cfg = await db.settings.find_one({"id": "ad_interval"})
     ad_interval = interval_cfg["interval"] if interval_cfg else 3
     
@@ -2051,6 +2015,7 @@ async def web_ui():
     social_links_dict = social_cfg.get('links', {}) if social_cfg else {}
     social_json = json.dumps(social_links_dict)
 
+    # UI setup with placeholder tags replaced dynamically
     html_code = r"""
     <!DOCTYPE html>
     <html lang="en">
@@ -2100,15 +2065,11 @@ async def web_ui():
 
             .section-title { padding: 5px 15px 15px; font-size: 20px; font-weight: 900; display: flex; align-items: center; gap: 8px; color:#ff416c; }
             
-            /* Enhanced Trending Container with CSS Scroll Snap to prevent stopping halfway */
             .trending-container { display: flex; overflow-x: auto; gap: 15px; padding: 0 15px 20px; scroll-behavior: smooth; scroll-snap-type: x mandatory; }
             .trending-container::-webkit-scrollbar { display: none; }
             .trending-card { min-width: 280px; max-width: 280px; background: transparent; overflow: hidden; cursor: pointer; flex-shrink: 0; position: relative; transition: transform 0.2s; transform: translateZ(0); will-change: transform; scroll-snap-align: start; }
             .trending-card:active { transform: scale(0.98); }
 
-            /* ==========================================================
-               ✨ NEW AD CAROUSEL (SWIPER) STYLES - SCREENSHOT REPLICATED
-               ========================================================== */
             .ad-carousel-container {
                 width: 100%;
                 margin: 5px 0 15px 0;
@@ -2123,10 +2084,10 @@ async def web_ui():
                 gap: 12px;
                 width: 100%;
                 padding: 10px 0;
-                scrollbar-width: none; /* Firefox */
+                scrollbar-width: none; 
             }
             .ad-carousel-track::-webkit-scrollbar {
-                display: none; /* Chrome/Safari */
+                display: none; 
             }
             .ad-carousel-card {
                 min-width: 250px;
@@ -2159,10 +2120,10 @@ async def web_ui():
             }
             .ad-carousel-body {
                 padding: 12px 15px 15px 15px;
-                text-align: left; /* Left Aligned as per Screenshot */
+                text-align: left; 
                 display: flex;
                 flex-direction: column;
-                align-items: flex-start; /* Left Aligned items */
+                align-items: flex-start; 
                 gap: 4px;
                 background: #ffffff;
             }
@@ -2277,11 +2238,9 @@ async def web_ui():
             .big-processing-text { font-size: 26px; font-weight: 900; color: #4ade80; animation: pulse 1.5s infinite; }
             @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
             
-            /* Enhanced Spin Wheel graphics Styles */
             .wheel-slice { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; }
             .spin-win-anim { animation: spin-stop-effect 4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards; }
             
-            /* 🛑 NEW: Splash Screen Keyframe Styles */
             @keyframes spinRing {
                 100% { transform: rotate(360deg); }
             }
@@ -2292,7 +2251,6 @@ async def web_ui():
         </style>
     </head>
     <body onclick="closeMenu(event)">
-        <!-- 🛑 Startup Splash Screen -->
         <div id="startupSplash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 1; visibility: visible; transition: opacity 0.8s ease, visibility 0.8s ease;">
             <div style="position: relative; width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px;">
                 <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000); animation: spinRing 3s linear infinite; filter: blur(8px); opacity: 0.85;"></div>
@@ -2577,7 +2535,7 @@ async def web_ui():
             const INIT_DATA = tg.initData || "";
             const BOT_UNAME = "{{BOT_USER}}";
             const AD_WAIT_TIME = {{AD_TIME}}; 
-            const AD_INTERVAL = {{AD_INTERVAL}}; // Dynamic interval configured from admin settings
+            const AD_INTERVAL = {{AD_INTERVAL}}; 
             
             let uid = tg.initDataUnsafe?.user?.id || 0;
             let isUserVip = false;
@@ -2646,9 +2604,6 @@ async def web_ui():
                 } catch(e) {}
             }
 
-            /* ==========================================================
-               ✨ NEW: RENDER COMPACT SWIPER AD CARDS - SCREENSHOT STYLE
-               ========================================================== */
             function getAdCarouselHTML(indexId) {
                 if(activeAds.length === 0) return '';
                 let sliderId = "slider_" + indexId;
@@ -2684,12 +2639,10 @@ async def web_ui():
                 </div>`;
             }
 
-            // Sync indicators dynamically upon swiping
             function syncAdDots(sliderId, totalAds) {
                 const track = document.getElementById('track_' + sliderId);
                 if(!track) return;
                 let scrollPos = track.scrollLeft;
-                // Calculate based on custom card width (250px + 12px gap)
                 let activeIdx = Math.round(scrollPos / 262);
                 
                 if (activeIdx >= totalAds) activeIdx = totalAds - 1;
@@ -3180,7 +3133,6 @@ async def web_ui():
                         </div>`;
                         htmlContent += cardHtml;
                         
-                        // ⚙️ SEQUENTIALLY INJECT COMPACT MULTI CAROUSEL CARD AFTER EVERY 'N' MOVIES
                         let visualIndex = index + 1;
                         if (activeAds.length > 0 && visualIndex % AD_INTERVAL === 0) {
                             htmlContent += getAdCarouselHTML(visualIndex);
@@ -3511,6 +3463,7 @@ async def web_ui():
             history.replaceState({page: 'home'}, "");
 
             function checkAndToggleTelegramBackButton() {
+                const modals = ['qualityfunction checkAndToggleTelegramBackButton() {
                 const modals = ['qualityModal', 'directLinkModal', 'vipModal', 'referModal', 'watchlistModal', 'requestsTrackerModal', 'adCampModal'];
                 let anyOpen = false;
                 modals.forEach(id => {
@@ -3588,7 +3541,7 @@ async def web_ui():
                 }, delay);
             }
 
-            // --- বিজ্ঞাপনের ব্যানার অটো-স্ক্রোল করার নতুন জাভাস্ক্রিপ্ট ফাংশন ---
+            // --- বিজ্ঞাপনের ব্যানার অটো-স্ক্রোল করার জাভাস্ক্রিপ্ট ফাংশন ---
             let adScrollInterval;
             function startAdCarouselsAutoScroll() {
                 if (adScrollInterval) clearInterval(adScrollInterval);
@@ -3618,7 +3571,7 @@ async def web_ui():
                         loadMovies(1)
                     ]);
                     renderCommunitySection();
-                    startAdCarouselsAutoScroll(); // এখানে অটো-স্ক্রোল ফাংশনটি রান করানো হলো
+                    startAdCarouselsAutoScroll(); 
                 } catch(e) {} finally {
                     hideSplashScreen();
                 }
@@ -3922,7 +3875,6 @@ async def create_sponsored_ad(d: AdCreateModel):
 @app.get("/api/ads/active")
 async def get_active_ads():
     now = datetime.datetime.utcnow()
-    # 🛑 সর্টিং পরিবর্তন: .sort("created_at", -1) যুক্ত হয়েছে যাতে নতুন বিজ্ঞাপন আগে আসে
     ads = await db.ads.find({"expires_at": {"$gte": now}}).sort("created_at", -1).to_list(20)
     for ad in ads: ad['_id'] = str(ad['_id'])
     return ads
@@ -4148,21 +4100,59 @@ async def get_analytics(auth: bool = Depends(verify_admin)):
     t_r = await db.reviews.aggregate([{"$group": {"_id": "$movie_title", "avg_rating": {"$avg": "$rating"}, "total_reviews": {"$sum": 1}}}, {"$sort": {"avg_rating": -1, "total_reviews": -1}}, {"$limit": 5}]).to_list(5)
     return {"live_online": live, "active_today": len(a_t), "active_week": len(a_w), "total_reviews": await db.reviews.count_documents({}), "total_requests": await db.requests.count_documents({}), "pending_requests": await db.requests.count_documents({"status": "pending"}), "category_stats": c_s, "top_rated": t_r}
 
+# ==========================================
+# 🛑 STARTUP & CO-EXISTENCE INITIALIZATION
+# ==========================================
 async def start():
     global video_queue
     video_queue = asyncio.Queue()
     cleanup_temp_files()
-    await init_db()
-    await load_admins()
-    await load_banned_users()
-    await load_keyword_replies()
-    config = uvicorn.Config(app, host="0.0.0.0", port=PORT_NUMBER, loop="asyncio")
+    
+    try:
+        await init_db()
+        logger.info("Database initialized successfully.")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        
+    try:
+        await load_admins()
+        await load_banned_users()
+        await load_keyword_replies()
+        logger.info("Cache configurations loaded successfully.")
+    except Exception as e:
+        logger.error(f"Caches failed to load properly: {e}")
+
+    # ⚠️ Uvicorn-এর Signal Capture নিষ্ক্রিয় করে Aiogram Polling চলমান রাখা হলো
+    config = uvicorn.Config(
+        app, 
+        host="0.0.0.0", 
+        port=PORT_NUMBER, 
+        loop="asyncio", 
+        install_handlers=False
+    )
     server = uvicorn.Server(config)
-    await pyro_app.start()
+    
+    # ⚠️ Pyrogram সেশনকে সুরক্ষিতভাবে রান করানো হচ্ছে
+    try:
+        await pyro_app.start()
+        logger.info("Pyrogram initialized successfully.")
+    except Exception as e:
+        logger.error(f"Pyrogram start-up bypassed or errored: {e}. Media file tasks may fall back.")
+        
     asyncio.create_task(auto_delete_worker())
     asyncio.create_task(video_queue_worker()) 
-    await bot.delete_webhook(drop_pending_updates=True)
+    
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+    except Exception as e:
+        logger.error(f"Failed to clear webhook configurations: {e}")
+        
+    # Uvicorn Background Task-এ রান হচ্ছে
     asyncio.create_task(server.serve())
+    logger.info("FastAPI Uvicorn running concurrently...")
+    
+    # Aiogram Polling স্টার্ট করা হলো
+    logger.info("Bot start polling initialized.")
     await dp.start_polling(bot)
 
 if __name__ == "__main__": 
