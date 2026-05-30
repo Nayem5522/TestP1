@@ -6,7 +6,7 @@ HTML_CODE = r"""
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MovieZone BD</title>
+    <title>Movies Link BD</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -249,7 +249,7 @@ HTML_CODE = r"""
     </div>
 
     <header>
-        <div class="logo">MovieZone<span>BD</span></div>
+        <div class="logo">Movies Link<span>BD</span></div>
         <button onclick="goHome()" class="home-btn"><i class="fa-solid fa-house"></i> Home Page</button>
     </header>
     
