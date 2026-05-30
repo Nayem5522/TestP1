@@ -3,14 +3,15 @@ import asyncio
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
+# এখানে bot-কে 'telegram_bot' হিসেবে রিনেম করা হলো যাতে 'bot' ফোল্ডার ইম্পোর্টের সাথে সংঘর্ষ না হয়
 from config import (
-    app, dp, bot, pyro_app, PORT_NUMBER, logger, db,
+    app, dp, bot as telegram_bot, pyro_app, PORT_NUMBER, logger, db,
     load_admins, load_banned_users, load_keyword_replies
 )
 from helpers import cleanup_temp_files
 from api.routes import api_router
 
-# বটের হ্যান্ডলারসমূহ এবং ব্যাকগ্রাউন্ড ওয়ার্কার লোড করা হলো (রেজিস্ট্রেশনের জন্য)
+# 'bot' ফোল্ডারের হ্যান্ডলার এবং ওয়ার্কার্স ইম্পোর্ট
 import bot.handlers
 from bot.workers import video_queue_worker, auto_delete_worker
 
@@ -95,7 +96,7 @@ async def start():
     
     # পেন্ডিং টেলিগ্রাম আপডেটসমূহ ক্লিয়ার করা হচ্ছে
     try:
-        await bot.delete_webhook(drop_pending_updates=True)
+        await telegram_bot.delete_webhook(drop_pending_updates=True)
     except Exception as e:
         logger.error(f"Failed to clear webhook configurations: {e}")
         
@@ -105,7 +106,7 @@ async def start():
     
     # টেলিগ্রাম বট লং-পোলিং স্টার্ট করা হলো
     logger.info("Bot polling initiated.")
-    await dp.start_polling(bot)
+    await dp.start_polling(telegram_bot)
 
 if __name__ == "__main__": 
     try: 
