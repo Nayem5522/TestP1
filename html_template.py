@@ -244,7 +244,7 @@ HTML_CODE = r"""
                 <div style="font-size: 36px; font-weight: 900; background: linear-gradient(45deg, #0ea5e9, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">MZ</div>
             </div>
         </div>
-        <h1 id="splashWelcomeText" style="font-size: 30px; font-weight: 900; color: #fff; text-shadow: 0 0 10px #38bdf8, 0 0 20px #0ea5e9; animation: pulseGlow 1.5s ease-in-out infinite alternate; text-align: center; margin-bottom: 12px; letter-spacing: 1px;">MOVIEZONE BD</h1>
+        <h1 id="splashWelcomeText" style="font-size: 30px; font-weight: 900; color: #fff; text-shadow: 0 0 10px #38bdf8, 0 0 20px #0ea5e9; animation: pulseGlow 1.5s ease-in-out infinite alternate; text-align: center; margin-bottom: 12px; letter-spacing: 1px;">Movies Link BD</h1>
         <p style="font-size: 13.5px; font-weight: 700; color: #94a3b8; letter-spacing: 2px; text-transform: uppercase;">Loading Premium Experience...</p>
     </div>
 
