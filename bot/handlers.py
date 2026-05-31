@@ -92,7 +92,7 @@ async def start_cmd(message: types.Message, state: FSMContext):
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
     
     # ১৬:৯ রেশিওর ওয়েলকাম ব্যানার ইমেজ
-    WELCOME_BANNER = "https://files.catbox.moe/abd55m.jpg"
+    WELCOME_BANNER = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=crop"
 
     if uid in admin_cache:
         # অ্যাডমিনদের জন্য মেসেজ
@@ -149,6 +149,62 @@ async def refer_info_start_cb(c: types.CallbackQuery):
     )
     await c.message.answer(text, parse_mode="HTML")
     await c.answer()
+
+# ==========================================
+# 🛑 MAYA AI ASSISTANT FOR ADMINS (NEW CO-PILOT COMMANDS)
+# ==========================================
+@dp.message(Command("maya"), lambda m: m.from_user.id in admin_cache)
+async def admin_maya_chat(m: types.Message):
+    prompt = m.text.split(" ", 1)
+    if len(prompt) < 2:
+        return await m.answer("⚠️ <b>Please specify a question!</b>\nUsage: <code>/maya write a marketing idea</code>", parse_mode="HTML")
+    
+    status_msg = await m.answer("⏳ <i>Maya is thinking...</i>", parse_mode="HTML")
+    try:
+        reply = await get_smart_reply(prompt[1], m.from_user.first_name, db, user_id=m.from_user.id)
+        await bot.delete_message(m.chat.id, status_msg.message_id)
+        await m.reply(reply, parse_mode="HTML")
+    except Exception as e:
+        await status_msg.edit_text(f"❌ <b>Error:</b> {str(e)}", parse_mode="HTML")
+
+@dp.message(Command("caption"), lambda m: m.from_user.id in admin_cache)
+async def admin_caption_gen(m: types.Message):
+    prompt = m.text.split(" ", 1)
+    if len(prompt) < 2:
+        return await m.answer("⚠️ <b>Please specify a movie name!</b>\nUsage: <code>/caption Puspa 2</code>", parse_mode="HTML")
+    
+    status_msg = await m.answer("⏳ <i>Generating poster caption...</i>", parse_mode="HTML")
+    try:
+        ai_prompt = f"Write an extremely attractive, professional, and dramatic Telegram channel post caption in Bangladeshi Bengali with lots of emojis for the movie: '{prompt[1]}'. Emphasize that it's now available on our Mini-App."
+        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id)
+        await bot.delete_message(m.chat.id, status_msg.message_id)
+        await m.reply(reply, parse_mode="HTML")
+    except Exception as e:
+        await status_msg.edit_text(f"❌ <b>Error:</b> {str(e)}", parse_mode="HTML")
+
+@dp.message(Command("movienews"), lambda m: m.from_user.id in admin_cache)
+async def admin_movienews_gen(m: types.Message):
+    status_msg = await m.answer("⏳ <i>Fetching hot movie news & gossip...</i>", parse_mode="HTML")
+    try:
+        ai_prompt = "Write an extremely interesting, trending movie news or gossip in Bangladeshi Bengali with emojis for a Telegram channel. Make it read like a hot gossip magazine post!"
+        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id)
+        await bot.delete_message(m.chat.id, status_msg.message_id)
+        await m.reply(reply, parse_mode="HTML")
+    except Exception as e:
+        await status_msg.edit_text(f"❌ <b>Error:</b> {str(e)}", parse_mode="HTML")
+
+@dp.message(Command("greeting"), lambda m: m.from_user.id in admin_cache)
+async def admin_greeting_gen(m: types.Message):
+    prompt = m.text.split(" ", 1)
+    event = prompt[1] if len(prompt) > 1 else "general"
+    status_msg = await m.answer(f"⏳ <i>Generating customized welcome greeting for '{event}'...</i>", parse_mode="HTML")
+    try:
+        ai_prompt = f"Write a beautiful, warm, and highly engaging welcome greeting in Bangladeshi Bengali with stylish emojis for our Telegram bot start menu. The theme/event is: '{event}'. Make it sound very welcoming!"
+        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id)
+        await bot.delete_message(m.chat.id, status_msg.message_id)
+        await m.reply(reply, parse_mode="HTML")
+    except Exception as e:
+        await status_msg.edit_text(f"❌ <b>Error:</b> {str(e)}", parse_mode="HTML")
 
 # ==========================================
 # 🛑 OTHER ADMIN COMMANDS
