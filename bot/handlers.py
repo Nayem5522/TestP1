@@ -45,7 +45,7 @@ class AdminStates(StatesGroup):
     waiting_for_bulk_quality = State()
     waiting_for_bulk_files = State()
 
-# বটের স্প্যাম ওয়ার্নিং মেসেজ ব্যাকগ্রাউন্ডে স্বয়ংক্রিয়ভাবে ক্লিন করার হেল্পার ফাংশন
+# বটের স্প্যাম ও গ্রুপর রিপ্লাই মেসেজ ব্যাকগ্রাউন্ডে স্বয়ংক্রিয়ভাবে ক্লিন করার হেল্পার ফাংশন
 async def delete_after_delay(chat_id, message_id, delay=20):
     await asyncio.sleep(delay)
     try:
@@ -795,8 +795,28 @@ async def group_request_responder(m: types.Message):
             except Exception as e:
                 logger.error(f"Savage link moderator error: {e}")
 
-    # ২. ডেটাবেসে ফাস্ট স্মার্ট সার্চ করা হচ্ছে (সম্পূর্ণ এপিআই বিল বা খরচ-মুক্ত)
-    found_movie = await smart_search(db, user_text)
+    # ক্যাজুয়াল বা সাধারণ চ্যাট ফিল্টার (যা মুভি সার্চ ট্রিগার করবে না)
+    casual_words = {
+        "hi", "hello", "hey", "bhai", "bro", "ভাই", "আপু", "হেই", "হাই", "হ্যালো", 
+        "কেমন", "আছ", "আচ্ছা", "ধন্যবাদ", "thanks", "thank", "ok", "ওকে", "yes", "no",
+        "কেমন আছেন", "কেমন আছো", "কি খবর", "পাবো", "পাব", "হবে", "আছে", "চোদ", "বাল", "চুদি"
+    }
+    
+    # যদি মেসেজের সব শব্দগুলোই ক্যাজুয়াল শব্দ হয়, তবে ডাটাবেস সার্চ স্কিপ করবে
+    user_text_clean = user_text.lower().strip()
+    words = set(user_text_clean.split())
+    
+    # ১. প্রথমে চেক করবে মেসেজটি অত্যন্ত ছোট (২ অক্ষরের কম) বা সম্পূর্ণ ক্যাজুয়াল কি না
+    is_casual_message = (
+        len(user_text_clean) < 3 
+        or user_text_clean in casual_words
+        or words.issubset(casual_words)
+    )
+
+    found_movie = None
+    if not is_casual_message:
+        # ২. শুধুমাত্র রিয়েল মুভি রিকোয়েস্ট হলে ডাটাবেসে ফাস্ট স্মার্ট সার্চ করবে (সম্পূর্ণ ফ্রী)
+        found_movie = await smart_search(db, user_text)
     
     if found_movie:
         # মুভিটি পাওয়া গেছে! ১-ক্লিক ওয়াচ লিঙ্কসহ গ্রুপে রিপ্লাই দেওয়া হচ্ছে
@@ -811,7 +831,12 @@ async def group_request_responder(m: types.Message):
             f"সেটি আমাদের মিনি-অ্যাপে অলরেডি আপলোড করা আছে! 😍\n\n"
             f"👇 নিচের বাটনে ক্লিক করে সরাসরি আমাদের বটে গিয়ে দেখে নিন বা ডাউনলোড করুন।"
         )
-        return await m.reply(text, reply_markup=markup, parse_mode="HTML")
+        # গ্রুপে পাঠানো মুভি রিপ্লাই মেসেজ
+        sent_msg = await m.reply(text, reply_markup=markup, parse_mode="HTML")
+        
+        # গ্রুপ পরিষ্কার রাখতে মুভিটি পাওয়ার ৫ মিনিট (৩০০ সেকেন্ড) পর মেসেজটি অটো-ডিলিট হয়ে যাবে
+        asyncio.create_task(delete_after_delay(m.chat.id, sent_msg.message_id, 300))
+        return
         
     # ৩. মুভি পাওয়া যায়নি। মায়াকে মেনশন বা মায়া ডাকলে এআই চালু হবে (খরচ নিয়ন্ত্রণে রাখতে)
     is_mentioned = (
@@ -834,7 +859,12 @@ async def group_request_responder(m: types.Message):
             # গ্রুপে চ্যাট মেমোরি জমে করাপশন এড়াতে save_history=False রাখা হয়েছে
             reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id, save_history=False)
             await bot.delete_message(m.chat.id, status_msg.message_id)
-            await m.reply(reply, parse_mode="HTML")
+            
+            # গ্রুপে পাঠানো মায়ার এআই মেসেজ
+            sent_ai_reply = await m.reply(reply, parse_mode="HTML")
+            
+            # গ্রুপ পরিষ্কার রাখতে ৫ মিনিট (৩০০ সেকেন্ড) পর মায়ার এআই উত্তরটিও ডিলিট হয়ে যাবে
+            asyncio.create_task(delete_after_delay(m.chat.id, sent_ai_reply.message_id, 300))
         except Exception as e:
             try: await bot.delete_message(m.chat.id, status_msg.message_id)
             except: pass
