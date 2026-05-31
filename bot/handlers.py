@@ -22,10 +22,12 @@ from helpers import make_wide_thumbnail
 
 # এআই অ্যাসিস্ট্যান্ট ইম্পোর্ট ও ব্যাকআপ লজিক
 try:
-    from assistant.ai_reply import get_smart_reply
+    from assistant.ai_reply import get_smart_reply, smart_search
 except ImportError:
-    async def get_smart_reply(text, name, db, user_id):
+    async def get_smart_reply(text, name, db, user_id, save_history=True):
         return f"হ্যালো {name}! আপনার মেসেজটি পেয়েছি। আমাদের টিম আপনার সাথে শীঘ্রই যোগাযোগ করবে।"
+    async def smart_search(db, text):
+        return None
 
 # অ্যাডমিন এফএসএম স্টেট ক্লাস
 class AdminStates(StatesGroup):
@@ -42,6 +44,13 @@ class AdminStates(StatesGroup):
     waiting_for_bulk_start_num = State()
     waiting_for_bulk_quality = State()
     waiting_for_bulk_files = State()
+
+# বটের স্প্যাম ওয়ার্নিং মেসেজ ব্যাকগ্রাউন্ডে স্বয়ংক্রিয়ভাবে ক্লিন করার হেল্পার ফাংশন
+async def delete_after_delay(chat_id, message_id, delay=20):
+    await asyncio.sleep(delay)
+    try:
+        await bot.delete_message(chat_id=chat_id, message_id=message_id)
+    except: pass
 
 # ==========================================
 # 🛑 PREMIUM START COMMAND WITH PROFILE CARD
@@ -161,7 +170,7 @@ async def admin_maya_chat(m: types.Message):
     
     status_msg = await m.answer("⏳ <i>Maya is thinking...</i>", parse_mode="HTML")
     try:
-        reply = await get_smart_reply(prompt[1], m.from_user.first_name, db, user_id=m.from_user.id)
+        reply = await get_smart_reply(prompt[1], m.from_user.first_name, db, user_id=m.from_user.id, save_history=True)
         await bot.delete_message(m.chat.id, status_msg.message_id)
         await m.reply(reply, parse_mode="HTML")
     except Exception as e:
@@ -176,7 +185,7 @@ async def admin_caption_gen(m: types.Message):
     status_msg = await m.answer("⏳ <i>Generating poster caption...</i>", parse_mode="HTML")
     try:
         ai_prompt = f"Write an extremely attractive, professional, and dramatic Telegram channel post caption in Bangladeshi Bengali with lots of emojis for the movie: '{prompt[1]}'. Emphasize that it's now available on our Mini-App."
-        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id)
+        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id, save_history=False)
         await bot.delete_message(m.chat.id, status_msg.message_id)
         await m.reply(reply, parse_mode="HTML")
     except Exception as e:
@@ -187,7 +196,7 @@ async def admin_movienews_gen(m: types.Message):
     status_msg = await m.answer("⏳ <i>Fetching hot movie news & gossip...</i>", parse_mode="HTML")
     try:
         ai_prompt = "Write an extremely interesting, trending movie news or gossip in Bangladeshi Bengali with emojis for a Telegram channel. Make it read like a hot gossip magazine post!"
-        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id)
+        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id, save_history=False)
         await bot.delete_message(m.chat.id, status_msg.message_id)
         await m.reply(reply, parse_mode="HTML")
     except Exception as e:
@@ -200,7 +209,7 @@ async def admin_greeting_gen(m: types.Message):
     status_msg = await m.answer(f"⏳ <i>Generating customized welcome greeting for '{event}'...</i>", parse_mode="HTML")
     try:
         ai_prompt = f"Write a beautiful, warm, and highly engaging welcome greeting in Bangladeshi Bengali with stylish emojis for our Telegram bot start menu. The theme/event is: '{event}'. Make it sound very welcoming!"
-        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id)
+        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id, save_history=False)
         await bot.delete_message(m.chat.id, status_msg.message_id)
         await m.reply(reply, parse_mode="HTML")
     except Exception as e:
@@ -211,7 +220,6 @@ async def admin_greeting_gen(m: types.Message):
 # ==========================================
 @dp.message(Command("broadcast_copy"), lambda m: m.from_user.id in admin_cache)
 async def admin_broadcast_copy_gen(m: types.Message):
-    # ডাটাবেস থেকে সর্বশেষ ৩টি মুভি ফেচ করা হচ্ছে
     latest_cursor = db.movies.find({}, {"title": 1}).sort("created_at", -1).limit(3)
     latest_movies = await latest_cursor.to_list(length=3)
     movie_list_str = ", ".join([mv["title"] for mv in latest_movies]) if latest_movies else "No recent movies"
@@ -223,7 +231,7 @@ async def admin_broadcast_copy_gen(m: types.Message):
             f"The goal is to invite users to watch our latest blockbuster releases. The latest movies added are: '{movie_list_str}'. "
             f"Tell them they can watch/download these in 1-click in our Mini-App by clicking the button below."
         )
-        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id)
+        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id, save_history=False)
         await bot.delete_message(m.chat.id, status_msg.message_id)
         await m.reply(reply, parse_mode="HTML")
     except Exception as e:
@@ -243,7 +251,7 @@ async def admin_dmca_analyzer(m: types.Message):
             f"If a movie is found, write the exact command they can run to delete it, like: `/delmovie [Movie Name]`. "
             f"Here is the DMCA text:\n\n{prompt[1]}"
         )
-        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id)
+        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id, save_history=False)
         await bot.delete_message(m.chat.id, status_msg.message_id)
         await m.reply(reply, parse_mode="HTML")
     except Exception as e:
@@ -261,11 +269,18 @@ async def admin_retarget_copy_gen(m: types.Message):
             f"Address them warmly (use placeholders like '{{Name}}'), and write in a way that feels like Netflix's personalized recommendations: "
             f"'Because you watched/searched for X, we recommend checking out Y on our Mini-App...'. Make it highly clickable."
         )
-        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id)
+        reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id, save_history=False)
         await bot.delete_message(m.chat.id, status_msg.message_id)
         await m.reply(reply, parse_mode="HTML")
     except Exception as e:
         await status_msg.edit_text(f"❌ <b>Error:</b> {str(e)}", parse_mode="HTML")
+
+# চ্যাট মেমোরি ইনস্ট্যান্ট ক্লিয়ার করার কমান্ড (রিসেট করার জন্য)
+@dp.message(Command("clear"), lambda m: m.from_user.id in admin_cache)
+async def admin_clear_chat_memory(m: types.Message):
+    identifier = str(m.from_user.id)
+    await db.messages.delete_many({"user_id": identifier})
+    await m.reply("🧹 <b>Your AI chat memory has been cleared and reset successfully!</b>\nমায়া এখন সম্পূর্ণ সুস্থ এবং নতুন ইনপুট নিতে প্রস্তুত। 😊", parse_mode="HTML")
 
 # ==========================================
 # 🛑 OTHER ADMIN COMMANDS
@@ -653,7 +668,7 @@ async def forward_to_admin(m: types.Message):
                 break
 
     if not is_manual_reply:
-        # প্রমোশনাল বা স্প্যাম লিংক স্ক্যান করা হচ্ছে (অটো-মডারেশন)
+        # প্রমোショナル বা স্প্যাম লিংক স্ক্যান করা হচ্ছে (অটো-মডারেশন)
         is_spam = False
         if "http" in user_text_lower or "t.me" in user_text_lower or "joinchat" in user_text_lower or "bit.ly" in user_text_lower:
             is_spam = True
@@ -730,6 +745,97 @@ async def admin_one_click_ban_cb(c: types.CallbackQuery):
     
     await c.message.edit_text(c.message.text + f"\n\n🚫 <b>User {target_uid} has been BANNED successfully!</b>", parse_mode="HTML")
     await c.answer("User Banned successfully!", show_alert=True)
+
+# ==========================================
+# 🛑 SMART AUTOMATIC MOVIE REQUEST AUTO-RESPONDER FOR GROUPS (SAVAGE ROASTING & AUTO-CLEAN)
+# ==========================================
+@dp.message(F.chat.type.in_({"group", "supergroup"}))
+async def group_request_responder(m: types.Message):
+    user_text = m.text.strip() if m.text else ""
+    if not user_text: return
+    
+    bot_info = await bot.get_me()
+    bot_username = bot_info.username
+    
+    # ⚠️ ১. ডাইনামিক কড়াকড়ি স্প্যাম-লিংক প্রোটেকশন (নন-অ্যাডমিন লিংক ডিটেক্টর ও র্যান্ডম রোস্টিং)
+    if m.from_user.id not in admin_cache:
+        user_text_lower = user_text.lower()
+        is_unauthorized_link = False
+        
+        # মেসেজে কোনো লিংক টাইপ টেক্সট বা এনটিটি আছে কি না চেক করা হচ্ছে
+        if any(x in user_text_lower for x in ["http://", "https://", "t.me/", "joinchat", "bit.ly"]):
+            is_unauthorized_link = True
+        elif m.entities:
+            for entity in m.entities:
+                if entity.type in ["url", "text_link"]:
+                    is_unauthorized_link = True
+                    break
+                    
+        if is_unauthorized_link:
+            try:
+                # ক. গ্রুপ থেকে ফালতু লিংকটি সাথে সাথে ডিলিট করে দেওয়া হলো
+                await bot.delete_message(chat_id=m.chat.id, message_id=m.message_id)
+                
+                # খ. কড়া ভাষায় স্প্যামারকে খাঁটি বাংলা রোস্টিং করা হচ্ছে
+                escaped_name = html.escape(m.from_user.first_name or "User")
+                roast_replies = [
+                    f"🚨 <b>ওই বলদ {escaped_name}!</b> এটা কি তোর বাপের জায়গা পাইছিস যে এখানে লিংক শেয়ার করতেছিস? যা ভাগ এখান থেকে! 😡",
+                    f"🚨 <b>শোন রে বলদ {escaped_name}!</b> আমাদের পারমিশন ছাড়া গ্রুপে ফালতু লিংক শেয়ার করবি না। পরেরবার করলে এক ক্লিকে গ্রুপ থেকে লাথি দিয়ে বের করে দেব! 😤",
+                    f"🚨 <b>এই আবাল {escaped_name}!</b> এখানে ফালতু লিংক আর বটের প্রচারণা চালানো নিষেধ। নিজের চরকায় তেল দে, এখানে বাপের জায়গা মনে করিস না! 🤬",
+                    f"🚨 <b>তোর বাপের রাজত্ব পাইছিস {escaped_name}?</b> গ্রুপে পারমিশন ছাড়া লিংক শেয়ার করা একদম নিষেধ! বেশি পন্ডিতি করলে ডিরেক্ট ব্যান করে দেব! 😡🔥"
+                ]
+                roast_text = random.choice(roast_replies)
+                sent_warn = await m.answer(roast_text, parse_mode="HTML")
+                
+                # গ. গ্রুপের সৌন্দর্য রক্ষার্থে বটের কড়া ওয়ার্নিং মেসেজটি ২০ সেকেন্ড পর স্বয়ংক্রিয়ভাবে মুছে যাবে (নন-ব্লকিং)
+                asyncio.create_task(delete_after_delay(m.chat.id, sent_warn.message_id, 20))
+                return
+            except Exception as e:
+                logger.error(f"Savage link moderator error: {e}")
+
+    # ২. ডেটাবেসে ফাস্ট স্মার্ট সার্চ করা হচ্ছে (সম্পূর্ণ এপিআই বিল বা খরচ-মুক্ত)
+    found_movie = await smart_search(db, user_text)
+    
+    if found_movie:
+        # মুভিটি পাওয়া গেছে! ১-ক্লিক ওয়াচ লিঙ্কসহ গ্রুপে রিপ্লাই দেওয়া হচ্ছে
+        bot_link = f"https://t.me/{bot_username}?start=new"
+        kb = [[types.InlineKeyboardButton(text="🎬 WATCH / DOWNLOAD NOW", url=bot_link)]]
+        markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
+        
+        escaped_name = html.escape(m.from_user.first_name or "User")
+        text = (
+            f"🍿 <b>Hey {escaped_name}!</b>\n\n"
+            f"আপনি যে মুভিটি খুঁজছেন—'<b>{found_movie['_id']}</b>' "
+            f"সেটি আমাদের মিনি-অ্যাপে অলরেডি আপলোড করা আছে! 😍\n\n"
+            f"👇 নিচের বাটনে ক্লিক করে সরাসরি আমাদের বটে গিয়ে দেখে নিন বা ডাউনলোড করুন।"
+        )
+        return await m.reply(text, reply_markup=markup, parse_mode="HTML")
+        
+    # ৩. মুভি পাওয়া যায়নি। মায়াকে মেনশন বা মায়া ডাকলে এআই চালু হবে (খরচ নিয়ন্ত্রণে রাখতে)
+    is_mentioned = (
+        f"@{bot_username}" in user_text 
+        or "maya" in user_text.lower() 
+        or "মায়া" in user_text
+    )
+    
+    if is_mentioned:
+        status_msg = await m.reply("⏳ <i>Maya is checking...</i>", parse_mode="HTML")
+        try:
+            ai_prompt = (
+                f"The user '{m.from_user.first_name}' is asking for a movie in our request group. "
+                f"We searched our database, and the movie is NOT available. "
+                f"Write a very polite, sweet, and comforting reply in Bangladeshi Bengali. "
+                f"Explain that we don't have this movie yet (or it might not be released yet), "
+                f"and tell them they can request it in our bot or wait, and we will upload it soon! "
+                f"Keep the reply short, friendly, and helpful. User's query: '{user_text}'"
+            )
+            # গ্রুপে চ্যাট মেমোরি জমে করাপশন এড়াতে save_history=False রাখা হয়েছে
+            reply = await get_smart_reply(ai_prompt, m.from_user.first_name, db, user_id=m.from_user.id, save_history=False)
+            await bot.delete_message(m.chat.id, status_msg.message_id)
+            await m.reply(reply, parse_mode="HTML")
+        except Exception as e:
+            try: await bot.delete_message(m.chat.id, status_msg.message_id)
+            except: pass
 
 # ==========================================
 # 🛑 MOVIE & EPISODE MANUAL UPLOAD LOGIC
