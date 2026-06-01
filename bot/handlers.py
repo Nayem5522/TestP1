@@ -52,6 +52,40 @@ async def delete_after_delay(chat_id, message_id, delay=20):
         await bot.delete_message(chat_id=chat_id, message_id=message_id)
     except: pass
 
+# 🛑 ওটিটি চ্যানেলের পুরোনো নোটিফিকেশন ডিলিট করে নতুন পোস্ট করার অটো-রিপ্লেস ফাংশন
+async def post_to_channel_and_clean_old(title: str, photo_id: str, caption: str, markup: types.InlineKeyboardMarkup):
+    if not CHANNEL_ID:
+        return None
+    
+    # ১. ডাটাবেসে এই মুভি বা সিরিজের আগের কোনো একটিভ চ্যানেল পোস্ট আইডি আছে কি না দেখব
+    old_movie = await db.movies.find_one({"title": title, "channel_msg_id": {"$exists": True, "$ne": None}})
+    if old_movie and old_movie.get("channel_msg_id"):
+        try:
+            # আগের পুরোনো আউটডেটেড পোস্টটি চ্যানেল থেকে ডিলিট করে দেওয়া হলো!
+            await bot.delete_message(chat_id=CHANNEL_ID, message_id=old_movie["channel_msg_id"])
+        except Exception as e:
+            logger.error(f"Failed to delete old channel post for {title}: {e}")
+            
+    # ২. নতুন আপডেট করা পোস্টটি চ্যানেলে পাঠানো হচ্ছে
+    try:
+        sent_msg = await bot.send_photo(
+            chat_id=CHANNEL_ID,
+            photo=photo_id,
+            caption=caption,
+            parse_mode="HTML",
+            reply_markup=markup
+        )
+        
+        # ৩. নতুন পোস্টের মেসেজ আইডিটি ডাটাবেসের এই মুভি/সিরিজের সবকটি আইটেমে আপডেট করে দেওয়া হলো!
+        await db.movies.update_many(
+            {"title": title},
+            {"$set": {"channel_msg_id": sent_msg.message_id}}
+        )
+        return sent_msg.message_id
+    except Exception as e:
+        logger.error(f"Failed to post new channel notification for {title}: {e}")
+    return None
+
 # ==========================================
 # 🛑 PREMIUM START COMMAND WITH PROFILE CARD
 # ==========================================
@@ -275,12 +309,16 @@ async def admin_retarget_copy_gen(m: types.Message):
     except Exception as e:
         await status_msg.edit_text(f"❌ <b>Error:</b> {str(e)}", parse_mode="HTML")
 
-# চ্যাট মেমোরি ইনস্ট্যান্ট ক্লিয়ার করার কমান্ড (রিসেট করার জন্য)
+# চ্যাট মেমোরি এবং ইমেজ ক্যাশ সম্পূর্ণ ক্লিয়ার করার স্পেশাল কমান্ড
 @dp.message(Command("clear"), lambda m: m.from_user.id in admin_cache)
 async def admin_clear_chat_memory(m: types.Message):
     identifier = str(m.from_user.id)
     await db.messages.delete_many({"user_id": identifier})
-    await m.reply("🧹 <b>Your AI chat memory has been cleared and reset successfully!</b>\nমায়া এখন সম্পূর্ণ সুস্থ এবং নতুন ইনপুট নিতে প্রস্তুত। 😊", parse_mode="HTML")
+    
+    # 🧹 মঙ্গোডিবির পুরোনো ইমেজ ক্যাশ ডাটাবেস থেকেও সাথে সাথে মুছে দেওয়া হলো!
+    await db.file_cache.delete_many({})
+    
+    await m.reply("🧹 <b>Your AI chat memory and image cache have been cleared successfully!</b>\nমিনি-অ্যাপটি একবার রিফ্রেশ করলেই নতুন সচল টোকেন দিয়ে সব পোস্টার অটো-রিপেয়ার হয়ে যাবে। 😊", parse_mode="HTML")
 
 # ==========================================
 # 🛑 OTHER ADMIN COMMANDS
@@ -798,7 +836,7 @@ async def group_request_responder(m: types.Message):
     # ক্যাজুয়াল বা সাধারণ চ্যাট ফিল্টার (যা মুভি সার্চ ট্রিগার করবে না)
     casual_words = {
         "hi", "hello", "hey", "bhai", "bro", "ভাই", "আপু", "হেই", "হাই", "হ্যালো", 
-        "কেমন", "আছ", "আচ্ছা", "ধন্যবাদ", "thanks", "thank", "ok", "ওকে", "yes", "no",
+        "কেমন", "আছ", "अच्छा", "ধন্যবাদ", "thanks", "thank", "ok", "ওকে", "yes", "no",
         "কেমন আছেন", "কেমন আছো", "কি খবর", "পাবো", "পাব", "হবে", "আছে", "চোদ", "বাল", "চুদি"
     }
     
@@ -813,9 +851,25 @@ async def group_request_responder(m: types.Message):
         or words.issubset(casual_words)
     )
 
+    # ২.২. প্রথমে গ্রুপে কাস্টম কিওয়ার্ড সার্চ করব (অ্যাডমিনদের সেট করা কাস্টম কিওয়ার্ড)
+    is_keyword_match = False
+    matched_reply = ""
+    for kw, rep_msg in keyword_replies_cache.items():
+        if kw in user_text_clean:
+            matched_reply = rep_msg
+            is_keyword_match = True
+            break
+            
+    if is_keyword_match:
+        # কাস্টম কিওয়ার্ড রিপ্লাই গ্রুপে পাঠানো হচ্ছে
+        sent_kw_msg = await m.reply(matched_reply, parse_mode="HTML")
+        # এটিও ৫ মিনিট পর অটো-ডিলিট হবে গ্রুপ ফ্রেশ রাখতে
+        asyncio.create_task(delete_after_delay(m.chat.id, sent_kw_msg.message_id, 300))
+        return
+
     found_movie = None
     if not is_casual_message:
-        # ২. শুধুমাত্র রিয়েল মুভি রিকোয়েস্ট হলে ডাটাবেসে ফাস্ট স্মার্ট সার্চ করবে (সম্পূর্ণ ফ্রী)
+        # ৩. শুধুমাত্র রিয়েল মুভি রিকোয়েস্ট হলে ডাটাবেসে ফাস্ট স্মার্ট সার্চ করবে (সম্পূর্ণ ফ্রী)
         found_movie = await smart_search(db, user_text)
     
     if found_movie:
@@ -838,7 +892,7 @@ async def group_request_responder(m: types.Message):
         asyncio.create_task(delete_after_delay(m.chat.id, sent_msg.message_id, 300))
         return
         
-    # ৩. মুভি পাওয়া যায়নি। মায়াকে মেনশন বা মায়া ডাকলে এআই চালু হবে (খরচ নিয়ন্ত্রণে রাখতে)
+    # ৪. মুভি পাওয়া যায়নি। মায়াকে মেনশন বা মায়া ডাকলে এআই চালু হবে (খরচ নিয়ন্ত্রণে রাখতে)
     is_mentioned = (
         f"@{bot_username}" in user_text 
         or "maya" in user_text.lower() 
@@ -960,7 +1014,7 @@ async def finalize_new_episode(m: types.Message, state: FSMContext):
     clear_app_cache() 
     
     await state.clear()
-    await m.answer(f"🎉 <b>{title} [{quality}]</b> সফলভাবে সিরিজে এড করা সম্পূর্ণ হয়েছে!", parse_mode="HTML")
+    await m.reply(f"🎉 <b>{title} [{quality}]</b> সফলভাবে সিরিজে এড করা সম্পূর্ণ হয়েছে!", parse_mode="HTML")
 
     if CHANNEL_ID:
         try:
@@ -972,7 +1026,7 @@ async def finalize_new_episode(m: types.Message, state: FSMContext):
             ]
             markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
             cat_display = ", ".join(categories) if categories else "N/A"
-            caption = (f"🔥 <b>নতুন এপিসোড যুক্ত হয়েছে!</b>\n\n📌 <b>টাইটেল:</b> {title}\n🏷 <b>এপিসোড/কোয়ালিটি:</b> {quality}\n🎭 <b>ক্যাটাগরি:</b> {cat_display}\n\n👇 <i>বট থেকে...</i>")
+            caption = (f"🔥 <b>নতুন এপিসোড যুক্ত হয়েছে!</b>\n\n📌 <b>টাইটেল:</b> {title}\n🏷 <b>কোয়ালিটি:</b> {quality}\n🎭 <b>ক্যাটাগরি:</b> {cat_display}\n\n👇 <i>বট থেকে...</i>")
             await bot.send_photo(chat_id=CHANNEL_ID, photo=photo_id, caption=caption, parse_mode="HTML", reply_markup=markup)
         except Exception: pass
 
@@ -1150,7 +1204,7 @@ async def finalize_bulk_upload(c: types.CallbackQuery, state: FSMContext):
                 f"🔢 <b>এপিসোড সমূহ:</b> {episodes_added[0]} - {episodes_added[-1]}\n"
                 f"🏷 <b>কোয়ালিটি:</b> {quality}\n"
                 f"🎭 <b>ক্যাটাগরি:</b> {cat_display}\n\n"
-                f"👇 <i>বট থেকে ভিডিওগুলো পেতে নিচের বাটনে ক্লিক করুন।</i>"
+                f"👇 <i>বট থেকে videoগুলো পেতে নিচের বাটনে ক্লিক করুন।</i>"
             )
             await bot.send_photo(chat_id=CHANNEL_ID, photo=photo_id, caption=caption, parse_mode="HTML", reply_markup=markup)
         except Exception: pass
