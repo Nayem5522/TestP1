@@ -21,11 +21,11 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # কনফিগারেশন ভ্যারিয়েবলসমূহ
-TOKEN = "8228670087:AAEPLRqdkpbKOc0ZZoG02wpY1N7MoiH4fmo"                  
+TOKEN = ""                  
 API_ID = 19234664                              
 API_HASH = "29c2f3b3d115cf1b0231d816deb271f5"                
 SESSION_STRING = ""                            
-MONGO_URL = "mongodb+srv://manogog673:manogog673@cluster0.ot1qt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"              
+MONGO_URL = ""              
 OWNER_ID = 5926160191                           
 CHANNEL_ID = "-1002152618409"                   
 ADMIN_PASS = "admin123"                        
