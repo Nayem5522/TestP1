@@ -225,31 +225,31 @@ HTML_CODE = r"""
         .wheel-slice { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; }
         .spin-win-anim { animation: spin-stop-effect 4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards; }
         
-        @keyframes spinRing {
-            100% { transform: rotate(360deg); }
-        }
         @keyframes pulseGlow {
-            from { text-shadow: 0 0 10px #38bdf8, 0 0 18px #0ea5e9; transform: scale(1); }
-            to { text-shadow: 0 0 20px #38bdf8, 0 0 35px #2563eb, 0 0 45px #2563eb; transform: scale(1.02); }
+            from { text-shadow: 0 0 12px rgba(239, 68, 68, 0.6), 0 0 22px rgba(245, 158, 11, 0.5); transform: scale(1); }
+            to { text-shadow: 0 0 22px rgba(239, 68, 68, 0.9), 0 0 40px rgba(245, 158, 11, 0.8); transform: scale(1.03); }
         }
     </style>
 </head>
 <body onclick="closeMenu(event)">
-    <div id="startupSplash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 1; visibility: visible; transition: opacity 0.8s ease, visibility 0.8s ease;">
-        <div style="position: relative; width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px;">
-            <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000); animation: spinRing 3s linear infinite; filter: blur(8px); opacity: 0.85;"></div>
-            <div style="position: absolute; width: calc(100% - 8px); height: calc(100% - 8px); border-radius: 50%; background: conic-gradient(#ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000); animation: spinRing 3s linear infinite;"></div>
+    <div id="startupSplash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #111827 0%, #030712 100%); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 1; visibility: visible; transition: opacity 0.8s ease, visibility 0.8s ease;">
+        <div style="position: relative; width: 170px; height: 170px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.45));">
+            <!-- প্রিমিয়াম ঘূর্ণন বর্ডার ইফেক্ট -->
+            <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#ff0055, #ff5500, #ffcc00, #ff0055); animation: spinRing 2.5s linear infinite; filter: blur(5px); opacity: 0.8;"></div>
+            <div style="position: absolute; width: calc(100% - 6px); height: calc(100% - 6px); border-radius: 50%; background: conic-gradient(#ff0055, #ff5500, #ffcc00, #ff0055); animation: spinRing 2.5s linear infinite;"></div>
             
-            <div style="position: absolute; width: calc(100% - 16px); height: calc(100% - 16px); background: #1e293b; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); z-index: 2;">
-                <div style="font-size: 36px; font-weight: 900; background: linear-gradient(45deg, #0ea5e9, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">MZ</div>
+            <!-- আপনার দেয়া নির্দিষ্ট পিকচার সম্বলিত লোগো বাটন -->
+            <div style="position: absolute; width: calc(100% - 14px); height: calc(100% - 14px); background: #0b0f19; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.9); z-index: 2; border: 1px solid rgba(255,255,255,0.08);">
+                <img src="https://i.ibb.co/XHhKLn7/photo-2026-06-23-19-29-46-7654675389934993448.jpg" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; transform: scale(1.02);" alt="Prime Cineflix">
             </div>
         </div>
-        <h1 id="splashWelcomeText" style="font-size: 30px; font-weight: 900; color: #fff; text-shadow: 0 0 10px #38bdf8, 0 0 20px #0ea5e9; animation: pulseGlow 1.5s ease-in-out infinite alternate; text-align: center; margin-bottom: 12px; letter-spacing: 1px;">Movies Link BD</h1>
-        <p style="font-size: 13.5px; font-weight: 700; color: #94a3b8; letter-spacing: 2px; text-transform: uppercase;">Loading Premium Experience...</p>
+        <!-- গোল্ডেন ও ক্রিপ্টো রেড ভাইব টেক্সট গ্লো -->
+        <h1 id="splashWelcomeText" style="font-size: 32px; font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(239, 68, 68, 0.7), 0 0 30px rgba(245, 158, 11, 0.8); animation: pulseGlow 1.2s ease-in-out infinite alternate; text-align: center; margin-bottom: 12px; letter-spacing: 2px;">𝑷𝑹𝑰𝑴𝑬 𝑪𝑰𝑵𝑬𝑭𝑳𝑰𝑿</h1>
+        <p style="font-size: 11.5px; font-weight: 800; color: #9ca3af; letter-spacing: 4px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Loading Premium Cinema</p>
     </div>
 
     <header>
-        <div class="logo">Movies Link<span>BD</span></div>
+        <div class="logo">𝑷𝑹𝑰𝑴𝑬<span>𝑪𝑰𝑵𝑬𝑭𝑳𝑰𝑿</span></div>
         <button onclick="goHome()" class="home-btn"><i class="fa-solid fa-house"></i> Home Page</button>
     </header>
     
