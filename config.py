@@ -30,7 +30,7 @@ SESSION_STRING = os.getenv("SESSION_STRING", "")
 MONGO_URL = os.getenv("MONGO_URL", "mongodb+srv://manogog673:manogog673@cluster0.ot1qt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")              
 OWNER_ID = int(os.getenv("OWNER_ID", "5926160191"))                           
 ADMIN_PASS = os.getenv("ADMIN_PASS", "admin123")                        
-BOT_USERNAME = os.getenv("BOT_USERNAME", "PmwBD")                
+BOT_USERNAME = os.getenv("BOT_USERNAME", "Prince_Sajjad_Cineflix_Bot")                
 
 APP_URL = os.getenv("APP_URL", "http://localhost:8000")
 
