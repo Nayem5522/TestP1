@@ -6,7 +6,7 @@ HTML_CODE = r"""
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Movies Link BD</title>
+    <title>Prime Flix</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -224,60 +224,113 @@ HTML_CODE = r"""
         
         .wheel-slice { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; }
         .spin-win-anim { animation: spin-stop-effect 4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards; }
-        
+        /* আরজিবি কালার হিউ-রোটেশন এনিমেশন */
         @keyframes spinRing {
-            100% { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); filter: hue-rotate(0deg); }
+            100% { transform: rotate(360deg); filter: hue-rotate(360deg); }
         }
 
+        /* প্রিমিয়াম নিওন আরজিবি পালস ইফেক্ট */
         @keyframes pulseGlow {
-            from { text-shadow: 0 0 12px rgba(239, 68, 68, 0.5), 0 0 22px rgba(245, 158, 11, 0.4); transform: scale(1); }
-            to { text-shadow: 0 0 25px rgba(239, 68, 68, 0.85), 0 0 45px rgba(245, 158, 11, 0.75); transform: scale(1.02); }
+            from { text-shadow: 0 0 12px rgba(255, 0, 85, 0.5), 0 0 22px rgba(0, 255, 213, 0.4); transform: scale(1); }
+            to { text-shadow: 0 0 25px rgba(255, 0, 85, 0.85), 0 0 45px rgba(0, 255, 213, 0.75); transform: scale(1.02); }
         }
 
-        /* লোগো ও রিং এর সিনেমাটিক জুম-ইন এন্ট্রান্স ইফেক্ট */
+        /* সিনেমাটিক জুম-ইন এন্ট্রান্স ইফেক্ট */
         @keyframes splashEntrance {
             0% { transform: scale(0.85) rotate(-15deg); opacity: 0; filter: brightness(0.5); }
             100% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
         }
 
-        /* লেখার জন্য সিনেমাটিক স্লাইড-আপ এন্ট্রান্স ইফেক্ট */
+        /* টেক্সট স্লাইড-আপ এন্ট্রান্স ইফেক্ট */
         @keyframes textEntrance {
             0% { transform: translateY(15px); opacity: 0; }
             100% { transform: translateY(0); opacity: 1; }
         }
+
+        /* নিওন লোডিং বার প্রগ্রেস এনিমেশন */
+        @keyframes loadProgress {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* তারকারাজির নিচ থেকে উপরে ওঠার এনিমেশন */
+        .splash-particle {
+            position: absolute;
+            opacity: 0;
+            text-shadow: 0 0 10px currentColor;
+            animation: floatUp 6s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg) scale(0); opacity: 0; }
+            20% { opacity: 0.8; }
+            80% { opacity: 0.8; }
+            100% { transform: translateY(-110vh) rotate(360deg) scale(1.3); opacity: 0; }
+}
     </style>
 </head>
 <body onclick="closeMenu(event)">
-    <div id="startupSplash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #040711; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 1; visibility: visible; transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s ease;">
-        <!-- থ্রি-ডি অ্যাম্বিয়েন্ট ব্যাকগ্রাউন্ড গ্লো ইফেক্ট -->
-        <div style="position: absolute; width: 350px; height: 350px; background: radial-gradient(circle, rgba(239, 68, 68, 0.18) 0%, transparent 70%); filter: blur(50px); pointer-events: none; z-index: 1;"></div>
-        <div style="position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 70%); filter: blur(60px); pointer-events: none; z-index: 1; transform: translate(50px, -50px);"></div>
+    <div id="startupSplash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #03050c; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 1; visibility: visible; transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s ease; overflow: hidden;">
         
-        <!-- লোগো কন্টেইনার (স্মুথ এন্ট্রান্স এনিমেশন সহ) -->
+        <!-- ভাসমান তারকারাজির কন্টেইনার -->
+        <div id="splashStars" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; overflow: hidden; pointer-events: none; z-index: 1;"></div>
+
+        <!-- থ্রি-ডি অ্যাম্বিয়েন্ট নিওন ব্যাকড্রপ গ্লো -->
+        <div style="position: absolute; width: 350px; height: 350px; background: radial-gradient(circle, rgba(255, 0, 85, 0.15) 0%, transparent 70%); filter: blur(50px); pointer-events: none; z-index: 1;"></div>
+        <div style="position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(0, 255, 213, 0.12) 0%, transparent 70%); filter: blur(60px); pointer-events: none; z-index: 1; transform: translate(50px, -50px);"></div>
+        
+        <!-- আরজিবি রোটেটিং লোগো কন্টেইনার -->
         <div style="position: relative; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; z-index: 2; animation: splashEntrance 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
-            <!-- লাক্সারি আউটার রিং (ব্লার গ্লো) -->
-            <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(from 180deg, #ff0055 0%, #ff5500 25%, #ffcc00 50%, #ff0055 100%); animation: spinRing 3s linear infinite; filter: blur(12px); opacity: 0.65;"></div>
-            <!-- মূল ঘূর্ণন বর্ডার -->
-            <div style="position: absolute; width: calc(100% - 4px); height: calc(100% - 4px); border-radius: 50%; background: conic-gradient(from 0deg, #ff0055 0%, #ff5500 25%, #ffcc00 50%, #ff0055 100%); animation: spinRing 3s linear infinite;"></div>
+            <!-- আরজিবি বর্ডার (Hue Rotate অ্যানিমেশন সহ) -->
+            <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000); animation: spinRing 4s linear infinite; filter: blur(12px); opacity: 0.7;"></div>
+            <div style="position: absolute; width: calc(100% - 4px); height: calc(100% - 4px); border-radius: 50%; background: conic-gradient(#ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000); animation: spinRing 4s linear infinite;"></div>
             
             <!-- আপনার দেয়া পিকচার সম্বলিত গ্লাস প্রোফাইল বাটন -->
-            <div style="position: absolute; width: calc(100% - 12px); height: calc(100% - 12px); background: #070a13; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: inset 0 0 25px rgba(0,0,0,0.95), 0 10px 30px rgba(0,0,0,0.5); z-index: 2; border: 1.5px solid rgba(255,255,255,0.12);">
+            <div style="position: absolute; width: calc(100% - 12px); height: calc(100% - 12px); background: #05070e; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: inset 0 0 25px rgba(0,0,0,0.95), 0 10px 30px rgba(0,0,0,0.5); z-index: 2; border: 1.5px solid rgba(255,255,255,0.12);">
                 <img src="https://i.ibb.co/XHhKLn7/photo-2026-06-23-19-29-46-7654675389934993448.jpg" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; transform: scale(1.02); filter: brightness(1.05) contrast(1.02);" alt="Prime Cineflix">
             </div>
         </div>
 
-        <!-- টেক্সট এবং গোল্ডেন ডট ডেকোরেশন এরিয়া -->
-        <div style="text-align: center; z-index: 2; animation: textEntrance 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
-            <h1 id="splashWelcomeText" style="font-size: 34px; font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(239, 68, 68, 0.6), 0 0 35px rgba(245, 158, 11, 0.7); animation: pulseGlow 1.2s ease-in-out infinite alternate; margin-bottom: 12px; letter-spacing: 2px;">𝑷𝑹𝑰𝑴𝑬 𝑪𝑰𝑵𝑬𝑭𝑳𝑰𝑿</h1>
+        <!-- টেক্সট এবং লোডিং বার এরিয়া -->
+        <div style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; animation: textEntrance 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+            <h1 id="splashWelcomeText" style="font-size: 34px; font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(255, 0, 85, 0.6), 0 0 35px rgba(0, 255, 213, 0.7); animation: pulseGlow 1.2s ease-in-out infinite alternate; margin-bottom: 8px; letter-spacing: 2px;">𝑷𝑹𝑰𝑴𝑬 𝑪𝑰𝑵𝑬𝑭𝑳𝑰𝑿</h1>
             
-            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <span style="width: 4px; height: 4px; background: #ffaa00; border-radius: 50%;"></span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 15px;">
+                <span style="width: 4px; height: 4px; background: #00ffd5; border-radius: 50%;"></span>
                 <p style="font-size: 11px; font-weight: 800; color: #9ca3af; letter-spacing: 5px; text-transform: uppercase;">Ultimate Cinematic Experience</p>
-                <span style="width: 4px; height: 4px; background: #ffaa00; border-radius: 50%;"></span>
+                <span style="width: 4px; height: 4px; background: #00ffd5; border-radius: 50%;"></span>
+            </div>
+
+            <!-- প্রিমিয়াম আরজিবি নিওন প্রগ্রেস লোডিং বার -->
+            <div style="position: relative; width: 150px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.5);">
+                <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, #ff0055, #00ffd5, transparent); animation: loadProgress 1.8s infinite;"></div>
             </div>
         </div>
-    </div>
 
+        <!-- স্বয়ংক্রিয় স্টারি পার্টিকল জেনারেটর স্ক্রিপ্ট -->
+        <script>
+            (function() {
+                const container = document.getElementById('splashStars');
+                if(!container) return;
+                const starSymbols = ['✦', '✧', '★', '•'];
+                const colors = ['#ff0055', '#00ffd5', '#ffffff', '#ffaa00'];
+                for (let i = 0; i < 40; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'splash-particle';
+                    star.innerText = starSymbols[Math.floor(Math.random() * starSymbols.length)];
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.bottom = '-10%';
+                    star.style.fontSize = (Math.random() * 8 + 6) + 'px';
+                    star.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    star.style.animationDelay = (Math.random() * 5) + 's';
+                    star.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                    container.appendChild(star);
+                }
+            })();
+        </script>
+    </div>
     <header>
         <div class="logo">𝑷𝑹𝑰𝑴𝑬<span>𝑪𝑰𝑵𝑬𝑭𝑳𝑰𝑿</span></div>
         <button onclick="goHome()" class="home-btn"><i class="fa-solid fa-house"></i> Home Page</button>
