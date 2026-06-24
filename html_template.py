@@ -225,27 +225,57 @@ HTML_CODE = r"""
         .wheel-slice { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; }
         .spin-win-anim { animation: spin-stop-effect 4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards; }
         
+        @keyframes spinRing {
+            100% { transform: rotate(360deg); }
+        }
+
         @keyframes pulseGlow {
-            from { text-shadow: 0 0 12px rgba(239, 68, 68, 0.6), 0 0 22px rgba(245, 158, 11, 0.5); transform: scale(1); }
-            to { text-shadow: 0 0 22px rgba(239, 68, 68, 0.9), 0 0 40px rgba(245, 158, 11, 0.8); transform: scale(1.03); }
+            from { text-shadow: 0 0 12px rgba(239, 68, 68, 0.5), 0 0 22px rgba(245, 158, 11, 0.4); transform: scale(1); }
+            to { text-shadow: 0 0 25px rgba(239, 68, 68, 0.85), 0 0 45px rgba(245, 158, 11, 0.75); transform: scale(1.02); }
+        }
+
+        /* লোগো ও রিং এর সিনেমাটিক জুম-ইন এন্ট্রান্স ইফেক্ট */
+        @keyframes splashEntrance {
+            0% { transform: scale(0.85) rotate(-15deg); opacity: 0; filter: brightness(0.5); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
+        }
+
+        /* লেখার জন্য সিনেমাটিক স্লাইড-আপ এন্ট্রান্স ইফেক্ট */
+        @keyframes textEntrance {
+            0% { transform: translateY(15px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
 <body onclick="closeMenu(event)">
-    <div id="startupSplash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #111827 0%, #030712 100%); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 1; visibility: visible; transition: opacity 0.8s ease, visibility 0.8s ease;">
-        <div style="position: relative; width: 170px; height: 170px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.45));">
-            <!-- প্রিমিয়াম ঘূর্ণন বর্ডার ইফেক্ট -->
-            <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#ff0055, #ff5500, #ffcc00, #ff0055); animation: spinRing 2.5s linear infinite; filter: blur(5px); opacity: 0.8;"></div>
-            <div style="position: absolute; width: calc(100% - 6px); height: calc(100% - 6px); border-radius: 50%; background: conic-gradient(#ff0055, #ff5500, #ffcc00, #ff0055); animation: spinRing 2.5s linear infinite;"></div>
+    <div id="startupSplash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #040711; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 1; visibility: visible; transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s ease;">
+        <!-- থ্রি-ডি অ্যাম্বিয়েন্ট ব্যাকগ্রাউন্ড গ্লো ইফেক্ট -->
+        <div style="position: absolute; width: 350px; height: 350px; background: radial-gradient(circle, rgba(239, 68, 68, 0.18) 0%, transparent 70%); filter: blur(50px); pointer-events: none; z-index: 1;"></div>
+        <div style="position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 70%); filter: blur(60px); pointer-events: none; z-index: 1; transform: translate(50px, -50px);"></div>
+        
+        <!-- লোগো কন্টেইনার (স্মুথ এন্ট্রান্স এনিমেশন সহ) -->
+        <div style="position: relative; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; z-index: 2; animation: splashEntrance 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+            <!-- লাক্সারি আউটার রিং (ব্লার গ্লো) -->
+            <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(from 180deg, #ff0055 0%, #ff5500 25%, #ffcc00 50%, #ff0055 100%); animation: spinRing 3s linear infinite; filter: blur(12px); opacity: 0.65;"></div>
+            <!-- মূল ঘূর্ণন বর্ডার -->
+            <div style="position: absolute; width: calc(100% - 4px); height: calc(100% - 4px); border-radius: 50%; background: conic-gradient(from 0deg, #ff0055 0%, #ff5500 25%, #ffcc00 50%, #ff0055 100%); animation: spinRing 3s linear infinite;"></div>
             
-            <!-- আপনার দেয়া নির্দিষ্ট পিকচার সম্বলিত লোগো বাটন -->
-            <div style="position: absolute; width: calc(100% - 14px); height: calc(100% - 14px); background: #0b0f19; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.9); z-index: 2; border: 1px solid rgba(255,255,255,0.08);">
-                <img src="https://i.ibb.co/XHhKLn7/photo-2026-06-23-19-29-46-7654675389934993448.jpg" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; transform: scale(1.02);" alt="Prime Cineflix">
+            <!-- আপনার দেয়া পিকচার সম্বলিত গ্লাস প্রোফাইল বাটন -->
+            <div style="position: absolute; width: calc(100% - 12px); height: calc(100% - 12px); background: #070a13; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: inset 0 0 25px rgba(0,0,0,0.95), 0 10px 30px rgba(0,0,0,0.5); z-index: 2; border: 1.5px solid rgba(255,255,255,0.12);">
+                <img src="https://i.ibb.co/XHhKLn7/photo-2026-06-23-19-29-46-7654675389934993448.jpg" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; transform: scale(1.02); filter: brightness(1.05) contrast(1.02);" alt="Prime Cineflix">
             </div>
         </div>
-        <!-- গোল্ডেন ও ক্রিপ্টো রেড ভাইব টেক্সট গ্লো -->
-        <h1 id="splashWelcomeText" style="font-size: 32px; font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(239, 68, 68, 0.7), 0 0 30px rgba(245, 158, 11, 0.8); animation: pulseGlow 1.2s ease-in-out infinite alternate; text-align: center; margin-bottom: 12px; letter-spacing: 2px;">𝑷𝑹𝑰𝑴𝑬 𝑪𝑰𝑵𝑬𝑭𝑳𝑰𝑿</h1>
-        <p style="font-size: 11.5px; font-weight: 800; color: #9ca3af; letter-spacing: 4px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Loading Premium Cinema</p>
+
+        <!-- টেক্সট এবং গোল্ডেন ডট ডেকোরেশন এরিয়া -->
+        <div style="text-align: center; z-index: 2; animation: textEntrance 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+            <h1 id="splashWelcomeText" style="font-size: 34px; font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(239, 68, 68, 0.6), 0 0 35px rgba(245, 158, 11, 0.7); animation: pulseGlow 1.2s ease-in-out infinite alternate; margin-bottom: 12px; letter-spacing: 2px;">𝑷𝑹𝑰𝑴𝑬 𝑪𝑰𝑵𝑬𝑭𝑳𝑰𝑿</h1>
+            
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span style="width: 4px; height: 4px; background: #ffaa00; border-radius: 50%;"></span>
+                <p style="font-size: 11px; font-weight: 800; color: #9ca3af; letter-spacing: 5px; text-transform: uppercase;">Ultimate Cinematic Experience</p>
+                <span style="width: 4px; height: 4px; background: #ffaa00; border-radius: 50%;"></span>
+            </div>
+        </div>
     </div>
 
     <header>
