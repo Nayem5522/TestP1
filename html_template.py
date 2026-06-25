@@ -1595,7 +1595,7 @@ HTML_CODE = r"""
 
         async function hideSplashScreen() {
             let elapsed = Date.now() - splashStartTime;
-            let delay = Math.max(0, 3000 - elapsed);
+            let delay = Math.max(0, 5000 - elapsed);
             
             setTimeout(() => {
                 let splash = document.getElementById('startupSplash');
