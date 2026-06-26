@@ -1133,7 +1133,7 @@ async def send_file(d: SendRequestModel):
             ]
             maya_wish = random.choice(delivery_wishes)
             
-            caption = f"{maya_wish}\n\n📥 Join: @TGLinkBase"
+            caption = f"{maya_wish}\n\n📥 Join: @PrimeCineZone"
             if not is_vip: caption += f"\n\n⏳ <i>সতর্কতা: সিকিউরিটির জন্য এই ভিডিওটি <b>{del_minutes} মিনিট</b> পর অটোমেটিক ডিলিট হয়ে যাবে!</i>"
             
             db_file_id = m.get("db_file_id")
