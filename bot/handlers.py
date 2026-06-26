@@ -135,7 +135,7 @@ async def start_cmd(message: types.Message, state: FSMContext):
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
     
     # ১৬:৯ রেশিওর ওয়েলকাম ব্যানার ইমেজ
-    WELCOME_BANNER = "https://files.catbox.moe/abd55m.jpg"
+    WELCOME_BANNER = "https://i.ibb.co/RTFptVps/photo-2026-04-26-13-54-40-7655768154169147412.jpg"
 
     if uid in admin_cache:
         # অ্যাডমিনদের জন্য মেসেজ
