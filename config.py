@@ -36,6 +36,10 @@ APP_URL = os.getenv("APP_URL", "http://localhost:8000")
 
 TUTORIAL_LINK = os.getenv("TUTORIAL_LINK", "https://t.me/HowtoDowlnoad/41")
 REQUEST_LINK = os.getenv("REQUEST_LINK", "https://t.me/+dld6-uEkdvQ5Yjg1")
+BACKUP_CHANNEL = os.getenv("BACKUP_CHANNEL", "https://t.me/PrimeCineZone")
+UPDATES_CHANNEL = os.getenv("UPDATES_CHANNEL", "https://t.me/+kCfsJ0dARCtmOTBl")
+
+
 
 # চ্যানেল আইডিগুলো স্ট্রিং বা ইনটিজার হ্যান্ডলিং
 _ch_id = os.getenv("CHANNEL_ID", "-1002152618409")
