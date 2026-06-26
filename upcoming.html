@@ -760,17 +760,22 @@
             document.getElementById('trailerThumb').style.display = "none";
         }
 
-        // শেয়ারিং ফাংশন সমূহ (ডাইনামিক ভাইরাল টেলিগ্রাম বট লিংক জেনারেটর)
+        // শেয়ারিং ফাংশন সমূহ (ছবি প্রিভিউ সহ ডাইনামিক লিংক জেনারেটর)
         function shareTelegram() {
             let botShareLink = `https://t.me/${BOT_UNAME}?start=upcoming`;
-            let text = `🍿 *${currentMovieTitle}* - Upcoming Blockbuster! \nরিলিজ হওয়ার সাথে সাথে ডাইরেক্ট ডাউনলোড লিংক পেতে এখনই নিচে ক্লিক করে আমাদের অফিসিয়াল বটে জয়েন করুন! 😍👇`;
-            let shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botShareLink)}&text=${encodeURIComponent(text)}`;
+            
+            // লেখার শেষে ইমেজ লিংক যুক্ত করা হয়েছে যাতে টেলিগ্রাম অটোমেটিক ছবি প্রিভিউ দেখায়
+            let text = `🍿 *${currentMovieTitle}* - Upcoming Blockbuster! \n\nরিলিজ হওয়ার সাথে সাথে ডাইরেক্ট ডাউনলোড লিংক পেতে এখনই নিচে ক্লিক করে আমাদের অফিসিয়াল বটে জয়েন করুন! 😍👇\n\n🔗 জয়েনিং লিংক: ${botShareLink}\n\n🖼️ পোস্টার প্রিভিউ: ${currentMovieUrl}`;
+            
+            let shareUrl = `https://t.me/share/url?url=&text=${encodeURIComponent(text)}`;
             window.open(shareUrl);
         }
 
         function shareWhatsApp() {
             let botShareLink = `https://t.me/${BOT_UNAME}?start=upcoming`;
-            let text = `🍿 *${currentMovieTitle}* - Upcoming Blockbuster! \nরিলিজ হওয়ার সাথে সাথে ডাইরেক্ট ডাউনলোড লিংক পেতে এখনই নিচে ক্লিক করে আমাদের অফিসিয়াল বটে জয়েন করুন! 😍👇\n\n🔗 ${botShareLink}`;
+            
+            let text = `🍿 *${currentMovieTitle}* - Upcoming Blockbuster! \n\nরিলিজ হওয়ার সাথে সাথে ডাইরেক্ট ডাউনলোড লিংক পেতে এখনই নিচে ক্লিক করে আমাদের অফিসিয়াল বটে জয়েন করুন! 😍👇\n\n🔗 জয়েনিং লিংক: ${botShareLink}\n\n🖼️ পোস্টার: ${currentMovieUrl}`;
+            
             let shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
             window.open(shareUrl);
         }
