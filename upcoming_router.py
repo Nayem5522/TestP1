@@ -9,8 +9,7 @@ from fastapi.responses import HTMLResponse
 from bson import ObjectId
 from cachetools import TTLCache
 
-# আমাদের কনফিগারেশন ও হেল্পার ফাইল থেকে গ্লোবাল অবজেক্ট ইম্পোর্ট করা হলো
-from config import db, admin_cache
+from config import db, admin_cache, BOT_USERNAME
 from helpers import validate_tg_data
 
 upcoming_router = APIRouter()
@@ -53,8 +52,8 @@ async def fetch_language_movies(session, lang_code, lang_name, today_str, next_3
                         "rating": round(m.get("vote_average", 0), 1),
                         "is_custom": False
                     })
-    except Exception as e:
-        pass
+        except Exception as e:
+            pass
     return lang_movies
 
 async def fetch_tmdb_upcoming():
@@ -86,8 +85,13 @@ async def fetch_tmdb_upcoming():
 
 @upcoming_router.get("/upcoming", response_class=HTMLResponse)
 async def upcoming_page():
+    tg_cfg = await db.settings.find_one({"id": "link_tg"})
+    tg_url = tg_cfg['url'] if tg_cfg else "https://t.me/MovieeBD"
+    
     with open("upcoming.html", "r", encoding="utf-8") as f:
         html_content = f.read()
+        
+    html_content = html_content.replace("{{TG_LINK}}", tg_url).replace("{{BOT_USER}}", BOT_USERNAME)
     return HTMLResponse(content=html_content)
 
 @upcoming_router.get("/api/upcoming/movies")
@@ -114,7 +118,6 @@ async def get_upcoming_movies():
     
     return {"movies": all_movies}
 
-# 🛑 UPDATE: ডাইনামিক ক্যাশ ও সিকিউর অ্যাডমিন চেক
 @upcoming_router.post("/api/upcoming/custom")
 async def add_custom_upcoming(data: dict = Body(...)):
     uid = int(data.get("uid", 0))
@@ -123,7 +126,6 @@ async def add_custom_upcoming(data: dict = Body(...)):
     if not validate_tg_data(init_data):
         return {"ok": False, "msg": "Session Expired! Please reopen bot."}
         
-    # গ্লোবাল admin_cache ব্যবহার করে চোখের পলকে অ্যাডমিন ভেরিফিকেশন
     if uid not in admin_cache:
         return {"ok": False, "msg": "You do not have Admin permissions!"}
 
@@ -131,7 +133,7 @@ async def add_custom_upcoming(data: dict = Body(...)):
         "title": data.get("title"),
         "release_date": data.get("release_date"),
         "language": data.get("language"),
-        "photo_url": data.get("photo_url"), # এখানে সরাসরি ইমেজের কোড সেভ হবে
+        "photo_url": data.get("photo_url"),
         "overview": data.get("overview", "")
     })
     return {"ok": True}
