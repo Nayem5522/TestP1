@@ -332,7 +332,7 @@ HTML_CODE = r"""
         </script>
     </div>
     <header>
-        <div class="logo">𝑷𝑹𝑰𝑴𝑬<span>𝑪𝑰𝑵𝑬𝑭𝑳𝑰𝑿</span></div>
+        <div class="logo"><span>𝑷𝑹𝑰𝑴𝑬 𝑪𝑰𝑵𝑬𝑭𝑳𝑰𝑿</span></div>
         <button onclick="goHome()" class="home-btn"><i class="fa-solid fa-house"></i> Home Page</button>
     </header>
     
