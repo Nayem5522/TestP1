@@ -27,7 +27,7 @@ LANG_MAP = {
 }
 
 async def fetch_language_movies(session, lang_code, lang_name, today_str, next_30_days_str):
-    url = f"https://api.themoviedb.org/3/discover/movie"
+    url = "https://api.themoviedb.org/3/discover/movie"
     params = {
         "api_key": TMDB_API_KEY,
         "primary_release_date.gte": today_str,
@@ -52,8 +52,8 @@ async def fetch_language_movies(session, lang_code, lang_name, today_str, next_3
                         "rating": round(m.get("vote_average", 0), 1),
                         "is_custom": False
                     })
-        except Exception as e:
-            pass
+    except Exception as e:
+        pass
     return lang_movies
 
 async def fetch_tmdb_upcoming():
@@ -151,3 +151,4 @@ async def delete_custom_upcoming(movie_id: str, data: dict = Body(...)):
         
     await db.upcoming_custom.delete_one({"_id": ObjectId(movie_id)})
     return {"ok": True}
+    
