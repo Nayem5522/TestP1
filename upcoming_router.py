@@ -38,21 +38,24 @@ async def fetch_language_movies(session, lang_code, lang_name, today_str, next_3
     }
     lang_movies = []
     try:
-        async with session.get(url, params=params) as resp:
-            data = await resp.json()
-            for m in data.get("results", [])[:10]:
-                if m.get("poster_path"):
-                    lang_movies.append({
-                        "_id": f"tmdb_{m['id']}",
-                        "title": m["title"],
-                        "release_date": m["release_date"],
-                        "language": lang_name,
-                        "photo_url": f"https://image.tmdb.org/t/p/w500{m['poster_path']}",
-                        "overview": m.get("overview", "No description available for this movie yet."),
-                        "rating": round(m.get("vote_average", 0), 1),
-                        "is_custom": False
-                    })
-    except Exception as e:
+        # ৫ সেকেন্ডের টাইমআউট ফিক্স যাতে কানেকশন হ্যাং না হয়
+        timeout = aiohttp.ClientTimeout(total=5)
+        async with session.get(url, params=params, timeout=timeout) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                for m in data.get("results", [])[:10]:
+                    if m.get("poster_path"):
+                        lang_movies.append({
+                            "_id": f"tmdb_{m['id']}",
+                            "title": m.get("title", "Untitled"),
+                            "release_date": m.get("release_date", today_str),
+                            "language": lang_name,
+                            "photo_url": f"https://image.tmdb.org/t/p/w500{m['poster_path']}",
+                            "overview": m.get("overview", "No description available for this movie yet."),
+                            "rating": round(m.get("vote_average", 0), 1),
+                            "is_custom": False
+                        })
+    except Exception:
         pass
     return lang_movies
 
@@ -79,7 +82,7 @@ async def fetch_tmdb_upcoming():
         for res in results:
             movies.extend(res)
 
-    movies.sort(key=lambda x: x["release_date"])
+    movies.sort(key=lambda x: x.get("release_date", ""))
     tmdb_cache["movies"] = movies
     return movies
 
@@ -96,25 +99,34 @@ async def upcoming_page():
 
 @upcoming_router.get("/api/upcoming/movies")
 async def get_upcoming_movies():
-    tmdb_movies = await fetch_tmdb_upcoming()
-    
-    today_str = datetime.datetime.utcnow().strftime("%Y-%m-%d")
-    custom_movies_cursor = db.upcoming_custom.find({"release_date": {"$gte": today_str}})
+    try:
+        tmdb_movies = await fetch_tmdb_upcoming()
+    except Exception:
+        tmdb_movies = []
+        
     custom_movies = []
-    async for c in custom_movies_cursor:
-        custom_movies.append({
-            "_id": str(c["_id"]),
-            "title": c["title"],
-            "release_date": c["release_date"],
-            "language": c["language"],
-            "photo_url": c["photo_url"],
-            "overview": c.get("overview", "Custom uploaded movie. Stay tuned for details!"),
-            "rating": "N/A",
-            "is_custom": True
-        })
+    today_str = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+    try:
+        custom_movies_cursor = db.upcoming_custom.find({"release_date": {"$gte": today_str}})
+        async for c in custom_movies_cursor:
+            try:
+                custom_movies.append({
+                    "_id": str(c.get("_id", "")),
+                    "title": c.get("title", "Untitled"),
+                    "release_date": c.get("release_date", today_str),
+                    "language": c.get("language", "Hollywood"),
+                    "photo_url": c.get("photo_url", ""),
+                    "overview": c.get("overview", "Custom uploaded movie. Stay tuned for details!"),
+                    "rating": "N/A",
+                    "is_custom": True
+                })
+            except Exception: pass
+    except Exception: pass
     
     all_movies = tmdb_movies + custom_movies
-    all_movies.sort(key=lambda x: x["release_date"])
+    try:
+        all_movies.sort(key=lambda x: x.get("release_date", today_str))
+    except Exception: pass
     
     return {"movies": all_movies}
 
