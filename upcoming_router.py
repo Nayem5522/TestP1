@@ -9,7 +9,7 @@ from fastapi.responses import HTMLResponse
 from bson import ObjectId
 from cachetools import TTLCache
 
-from config import db, admin_cache, BOT_USERNAME
+from config import db, admin_cache, BOT_USERNAME, UPDATES_CHANNEL
 from helpers import validate_tg_data
 
 upcoming_router = APIRouter()
@@ -88,8 +88,9 @@ async def fetch_tmdb_upcoming():
 
 @upcoming_router.get("/upcoming", response_class=HTMLResponse)
 async def upcoming_page():
+    # প্রথমে ডেটাবেস চেক করবে, না পেলে এনভায়রনমেন্ট ভ্যারিয়েবল UPDATES_CHANNEL রিড করবে
     tg_cfg = await db.settings.find_one({"id": "link_tg"})
-    tg_url = tg_cfg['url'] if tg_cfg else "https://t.me/MovieeBD"
+    tg_url = tg_cfg['url'] if tg_cfg else os.getenv("UPDATES_CHANNEL", "")
     
     with open("upcoming.html", "r", encoding="utf-8") as f:
         html_content = f.read()
