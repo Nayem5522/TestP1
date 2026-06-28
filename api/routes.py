@@ -824,9 +824,9 @@ async def web_ui():
     interval_cfg = await db.settings.find_one({"id": "ad_interval"})
     ad_interval = interval_cfg["interval"] if interval_cfg else 3
     
-    tg_url = tg_cfg['url'] if tg_cfg else "https://t.me/MovieeBD"
-    support_link = support_cfg['url'] if support_cfg else "https://t.me/YourSupportUsername"
-    link_18 = b18_cfg['url'] if b18_cfg else "https://t.me/MovieeBD"
+    tg_url = tg_cfg['url'] if tg_cfg else "https://t.me/PrimeCineZone"
+    support_link = support_cfg['url'] if support_cfg else "https://t.me/Prime_Support_Group"
+    link_18 = b18_cfg['url'] if b18_cfg else "https://t.me/PrimeCineZone"
     direct_links = dl_cfg.get('links', []) if dl_cfg else []
     dl_json = json.dumps(direct_links)
     
