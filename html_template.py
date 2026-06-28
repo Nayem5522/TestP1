@@ -170,7 +170,43 @@ HTML_CODE = r"""
         .post-content img { width: 100%; aspect-ratio: 16/9; height: auto; object-fit: cover; display: block; border-radius: 10px; }
         
         .card-footer { padding: 12px 5px 0; display: flex; align-items: flex-start; gap: 12px; text-align: left; }
-        .channel-logo { width: 40px; height: 40px; border-radius: 50%; background: white; color: #ef4444; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; flex-shrink: 0; }
+
+        
+        .channel-logo { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            flex-shrink: 0; 
+            overflow: hidden;
+            box-shadow: 0 0 8px rgba(0,0,0,0.5);
+        }
+        /* পেছনের আরজিবি বর্ডার যা ঘুরতে থাকবে */
+        .channel-logo::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(#ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            animation: spinRing 4s linear infinite;
+            z-index: 1;
+        }
+        /* ভেতরের লোগো ইমেজ যা স্থির থাকবে */
+        .channel-logo img {
+            width: calc(100% - 4px); /* ৪ পিক্সেল কম হওয়ায় ২ পিক্সেলের আরজিবি বর্ডার তৈরি হবে */
+            height: calc(100% - 4px);
+            object-fit: cover;
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
+            background: #05070e;
+        }
+        
         .title-text { color: #f8fafc; font-size: 16px; font-weight: bold; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-top: 2px; }
 
         .top-badge, .ep-badge, .view-badge { position: absolute; font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 11px; z-index: 10; color: white;}
@@ -819,7 +855,9 @@ HTML_CODE = r"""
                                 <div class="ep-badge"><i class="fa-solid fa-bookmark text-yellow-400"></i> Saved</div>
                             </div>
                             <div class="card-footer">
-                                <div class="channel-logo">MB</div>
+                                <div class="channel-logo">
+    <img src="https://i.ibb.co/XHhKLn7/photo-2026-06-23-19-29-46-7654675389934993448.jpg" alt="Logo">
+</div>
                                 <div class="title-text">${m.title}</div>
                             </div>
                         </div>`;
@@ -1165,7 +1203,9 @@ HTML_CODE = r"""
                             <div class="view-badge" id="trend-view-${makeSafeId(m._id)}"><i class="fa-solid fa-eye"></i> ${formatViews(m.clicks)}</div>
                         </div>
                         <div class="card-footer">
-                            <div class="channel-logo">MB</div>
+                            <div class="channel-logo">
+    <img src="https://i.ibb.co/XHhKLn7/photo-2026-06-23-19-29-46-7654675389934993448.jpg" alt="Logo">
+</div>
                             <div class="title-text">${m._id}</div>
                         </div>
                     </div>`;
@@ -1194,7 +1234,9 @@ HTML_CODE = r"""
                             <div class="view-badge" id="list-view-${makeSafeId(m._id)}"><i class="fa-solid fa-eye"></i> ${formatViews(m.clicks)}</div>
                         </div>
                         <div class="card-footer">
-                            <div class="channel-logo">MB</div>
+                            <div class="channel-logo">
+    <img src="https://i.ibb.co/XHhKLn7/photo-2026-06-23-19-29-46-7654675389934993448.jpg" alt="Logo">
+</div>
                             <div class="title-text">${m._id}</div>
                         </div>
                     </div>`;
@@ -1329,7 +1371,7 @@ HTML_CODE = r"""
         function resetDlButton() {
             const btn = document.getElementById('dlClickBtn');
             btn.onclick = executeDirectLink;
-            btn.innerText = "🔗 Click Here (Open Link)";
+            btn.innerText = "🔗 Click Here (Open Link) 🚀✅";
             btn.style.background = "linear-gradient(45deg, #ef4444, #f97316)";
             btn.disabled = false;
         }
