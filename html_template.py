@@ -381,10 +381,10 @@ HTML_CODE = r"""
     <div id="communityBox"></div>
 
     <div class="developer-credit">
-        <div class="dev-title"><i class="fa-solid fa-laptop-code"></i> Developed & Deployed By</div>
+        <div class="dev-title"><i class="fa-solid fa-laptop-code"></i> Developer & Deployed By</div>
         <div class="dev-name">Bot Developer</div>
         <div class="dev-desc">Do you want to create a high-quality premium movie bot for your channel or group? Contact us today.</div>
-        <button class="dev-btn" onclick="window.open('https://t.me/ProBotDeveloperBot', '_blank')">
+        <button class="dev-btn" onclick="window.open('https://t.me/Prime_Admin_Support_ProBot', '_blank')">
             <i class="fa-brands fa-telegram"></i> Contact Developer
         </button>
     </div>
