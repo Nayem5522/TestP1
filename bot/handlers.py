@@ -45,6 +45,28 @@ class AdminStates(StatesGroup):
     waiting_for_bulk_quality = State()
     waiting_for_bulk_files = State()
 
+# ফিক্সড ক্যাটাগরি লিস্ট (আপনার ইমেজ অনুযায়ী)
+FIXED_CATEGORIES = [
+    "Home", "18+ Adult", "Action", "Anime", "Bangla", 
+    "Bangla Dubbed", "Dual Audio", "English", "Hindi", 
+    "Hindi Dubbed", "Horror", "Korean", "Trending", 
+    "Movies", "Web-Series"
+]
+
+# ক্যাটাগরি কিবোর্ড জেনারেটর ফাংশন
+def get_category_keyboard(selected_cats: list):
+    builder = InlineKeyboardBuilder()
+    for cat in FIXED_CATEGORIES:
+        # সিলেক্ট করা থাকলে বাটনের আগে ✅ শো করবে
+        prefix = "✅ " if cat in selected_cats else ""
+        builder.button(text=f"{prefix}{cat}", callback_data=f"tgcat_{cat}")
+    
+    # স্কিপ এবং কমপ্লিট বাটন
+    builder.button(text="⏭️ Skip / None", callback_data="tgcat_skip")
+    builder.button(text="🚀 Complete & Save (Done)", callback_data="tgcat_done")
+    builder.adjust(2)  # প্রতি লাইনে ২টি করে বাটন
+    return builder.as_markup()
+    
 # বটের স্প্যাম ও গ্রুপর রিপ্লাই মেসেজ ব্যাকগ্রাউন্ডে স্বয়ংক্রিয়ভাবে ক্লিন করার হেল্পার ফাংশন
 async def delete_after_delay(chat_id, message_id, delay=20):
     await asyncio.sleep(delay)
@@ -1256,16 +1278,45 @@ async def receive_movie_title(m: types.Message, state: FSMContext):
 
 @dp.message(AdminStates.waiting_for_quality, F.text)
 async def receive_movie_quality(m: types.Message, state: FSMContext):
-    await state.update_data(quality=m.text.strip())
+    await state.update_data(quality=m.text.strip(), selected_categories=[])
     await state.set_state(AdminStates.waiting_for_category)
-    await m.answer("✅ কোয়ালিটি সেভ হয়েছে!\n\nএবার মুভির <b>ক্যাটাগরি</b> লিখে পাঠান।\n<i>(একাধিক হলে কমা দিয়ে লিখুন। যেমন: Bangla Dub, Action, 18+)</i>\n\n<i>(ক্যাটাগরি না দিতে চাইলে 'Skip' লিখুন)</i>", parse_mode="HTML")
-
-@dp.message(AdminStates.waiting_for_category, F.text)
-async def receive_movie_category(m: types.Message, state: FSMContext):
-    cat_text = m.text.strip()
-    if cat_text.lower() in ['skip', 'none', 'no']: categories = []
-    else: categories = [cat.strip() for cat in cat_text.split(",") if cat.strip()]
     
+    await m.answer(
+        "✅ কোয়ালিটি সেভ হয়েছে!\n\n👇 নিচে দেওয়া বাটনগুলো থেকে এক বা একাধিক ক্যাটাগরি সিলেক্ট করুন। সিলেক্ট করা হয়ে গেলে নিচে <b>'Complete'</b> বাটনে চাপুন:",
+        reply_markup=get_category_keyboard([]),
+        parse_mode="HTML"
+    )
+    
+# বাটন ক্লিক প্রসেস করার হ্যান্ডলার
+@dp.callback_query(AdminStates.waiting_for_category, F.data.startswith("tgcat_"))
+async def handle_category_selection(c: types.CallbackQuery, state: FSMContext):
+    action = c.data.split("_", 1)[1]
+    data = await state.get_data()
+    selected_cats = data.get("selected_categories", [])
+
+    if action == "skip":
+        await c.answer("Categories skipped!")
+        await save_movie_final(c.message, state, [])
+    elif action == "done":
+        await c.answer("Processing save...")
+        await save_movie_final(c.message, state, selected_cats)
+    else:
+        # ক্যাটাগরি টগল করা (সিলেক্ট থাকলে রিমুভ হবে, না থাকলে অ্যাড হবে)
+        if action in selected_cats:
+            selected_cats.remove(action)
+        else:
+            selected_cats.append(action)
+        await state.update_data(selected_categories=selected_cats)
+        
+        # কিবোর্ড আপডেট করে টিকমার্ক দেখানো হচ্ছে
+        try:
+            await c.message.edit_reply_markup(reply_markup=get_category_keyboard(selected_cats))
+        except Exception:
+            pass
+        await c.answer(f"Selected: {action}")
+
+# ডাটাবেসে সেভ করার ফাইনাল ফাংশন
+async def save_movie_final(message: types.Message, state: FSMContext, categories: list):
     data = await state.get_data()
     await state.clear()
     
@@ -1282,8 +1333,13 @@ async def receive_movie_category(m: types.Message, state: FSMContext):
     })
     clear_app_cache() 
     
-    cat_display = ", ".join(categories) if categories else "N/A"
-    await m.answer(f"🎉 <b>{title} [{quality}]</b> অ্যাপে সফলভাবে যুক্ত করা হয়েছে!\n🏷 ক্যাটাগরি: <b>{cat_display}</b>", parse_mode="HTML")
+    cat_display = ", ".join(categories) if categories else "None"
+    
+    # মূল মেসেজটি আপডেট করে কনফার্মেশন পাঠানো
+    try:
+        await message.edit_text(f"🎉 <b>{title} [{quality}]</b> অ্যাপে সফলভাবে যুক্ত করা হয়েছে!\n🏷 ক্যাটাগরি: <b>{cat_display}</b>", parse_mode="HTML", reply_markup=None)
+    except Exception:
+        await message.answer(f"🎉 <b>{title} [{quality}]</b> অ্যাপে সফলভাবে যুক্ত করা হয়েছে!\n🏷 ক্যাটাগরি: <b>{cat_display}</b>", parse_mode="HTML")
 
     if CHANNEL_ID:
         try:
@@ -1294,8 +1350,7 @@ async def receive_movie_category(m: types.Message, state: FSMContext):
                 [types.InlineKeyboardButton(text="♻️ MOVIE REQUEST ♻️", url=REQUEST_LINK)]
             ]
             markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
-            caption = (f"🔥 <b>নতুন ফাইল যুক্ত হয়েছে!</b>\n\n📌 <b>টাইটেল:</b> {title}\n🏷 <b>কোয়ালিটি:</b> {quality}\n🎭 <b>ক্যাটাগরি:</b> {cat_display}\n\n👇 <i>বট থেকে...</i>")
-            await bot.send_photo(chat_id=CHANNEL_ID, photo=photo_id, caption=caption, parse_mode="HTML", reply_markup=markup)
+            await bot.send_photo(chat_id=CHANNEL_ID, photo=photo_id, caption=f"🔥 <b>নতুন ফাইল যুক্ত হয়েছে!</b>\n\n📌 <b>টাইটেল:</b> {title}\n🏷 <b>কোয়ালিটি:</b> {quality}\n🎭 <b>ক্যাটাগরি:</b> {cat_display}\n\n👇 <i>বট থেকে...</i>", parse_mode="HTML", reply_markup=markup)
         except Exception: pass
 
 # ==========================================
