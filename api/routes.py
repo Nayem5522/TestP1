@@ -152,6 +152,7 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 <button onclick="switchAdminTab('ads')" id="tabBtn-ads" class="px-4 py-2 bg-gray-800 hover:bg-gray-750 rounded text-gray-300 font-bold transition">Ads Manager</button>
                 <button onclick="switchAdminTab('keywords')" id="tabBtn-keywords" class="px-4 py-2 bg-gray-800 hover:bg-gray-750 rounded text-gray-300 font-bold transition">Keyword Replies</button>
                 <button onclick="switchAdminTab('requests')" id="tabBtn-requests" class="px-4 py-2 bg-gray-800 hover:bg-gray-750 rounded text-gray-300 font-bold transition">User Requests</button>
+                <button onclick="switchAdminTab('categories')" id="tabBtn-categories" class="px-4 py-2 bg-gray-800 hover:bg-gray-750 rounded text-gray-300 font-bold transition">Manage Categories</button>
             </div>
 
             <div id="adminTab-dashboard" class="admin-tab-content">
@@ -381,6 +382,39 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 </div>
             </div>
 
+            <!-- Dynamic Category Manager Tab -->
+            <div id="adminTab-categories" class="admin-tab-content hidden">
+                <div class="neon-card rounded-2xl border border-gray-700 p-6 shadow mb-8">
+                    <h2 class="text-xl font-bold text-gray-200 mb-4"><i class="fa-solid fa-tags text-cyan-500"></i> Dynamic Category Manager</h2>
+                    
+                    <div class="bg-gray-900 p-4 rounded-lg border border-gray-700 mb-6">
+                        <h3 class="text-gray-300 font-bold mb-3">Add / Update Category</h3>
+                        <div class="flex flex-col md:flex-row gap-3">
+                            <input type="text" id="catNameInput" placeholder="Category Name (e.g. Action)" class="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none md:w-1/3">
+                            <input type="text" id="catIconInput" placeholder="FontAwesome Icon Class (e.g. fa-solid fa-hand-fist)" class="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:outline-none flex-grow">
+                            <button onclick="addCategoryAdmin()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded font-bold whitespace-nowrap">Add Category</button>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">💡 আপনি <a href="https://fontawesome.com/search?o=r&m=free" target="_blank" class="text-cyan-400 underline">FontAwesome</a> থেকে যেকোনো ফ্রি ৫ বা ৬ সিরিজের আইকন ক্লাস কপি করে বসাতে পারেন।</p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-gray-700 text-gray-300">
+                                <tr>
+                                    <th class="p-4">Icon Preview</th>
+                                    <th class="p-4">Category Name</th>
+                                    <th class="p-4">Icon Class</th>
+                                    <th class="p-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminCategoriesTableBody">
+                                <tr><td colspan="4" class="p-4 text-center text-gray-500">Loading categories...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <div id="adminTab-requests" class="admin-tab-content hidden">
                 <div class="neon-card rounded-2xl border border-gray-700 p-6 shadow mb-8">
                     <h2 class="text-xl font-bold text-gray-200 mb-4"><i class="fa-solid fa-code-pull-request text-red-500"></i> User Movie Requests Management</h2>
@@ -425,6 +459,7 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                 else if (tabId === 'ads') { loadAds(); }
                 else if (tabId === 'keywords') { loadKeywordList(); }
                 else if (tabId === 'requests') { loadAdminRequests(); }
+                else if (tabId === 'categories') { loadCategoriesAdmin(); }
             }
 
             async function loadSysSettings() {
@@ -802,6 +837,46 @@ async def web_admin_panel(auth: bool = Depends(verify_admin)):
                     loadAnalytics();
                 }
             }, 10000);
+
+            async function loadCategoriesAdmin() {
+                try {
+                    const res = await fetch('/api/admin/categories/all');
+                    const data = await res.json();
+                    let html = '';
+                    data.categories.forEach(c => {
+                        html += `
+                        <tr class="border-b border-gray-700 hover:bg-gray-750">
+                            <td class="p-4"><span class="bg-gray-900 p-2.5 rounded-lg text-cyan-400 text-lg"><i class="${c.icon || 'fa-solid fa-film'}"></i></span></td>
+                            <td class="p-4 font-bold text-white">${c.name}</td>
+                            <td class="p-4 text-gray-400"><code>${c.icon || 'fa-solid fa-film'}</code></td>
+                            <td class="p-4"><button onclick="deleteCategoryAdmin('${c._id}')" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded">Delete</button></td>
+                        </tr>`;
+                    });
+                    document.getElementById('adminCategoriesTableBody').innerHTML = html || '<tr><td colspan="4" class="text-center p-8 text-gray-400">No categories found.</td></tr>';
+                } catch(e) {}
+            }
+
+            async function addCategoryAdmin() {
+                const name = document.getElementById('catNameInput').value.trim();
+                const icon = document.getElementById('catIconInput').value.trim();
+                if(!name) { alert('Category Name is required!'); return; }
+                
+                await fetch('/api/admin/categories/create', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name: name, icon: icon || 'fa-solid fa-film' })
+                });
+                document.getElementById('catNameInput').value = '';
+                document.getElementById('catIconInput').value = '';
+                loadCategoriesAdmin();
+            }
+
+            async function deleteCategoryAdmin(id) {
+                if(confirm('Are you sure you want to delete this category?')) {
+                    await fetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
+                    loadCategoriesAdmin();
+                }
+            }
         </script>
     </body>
     </html>
@@ -963,14 +1038,43 @@ async def trending_movies(uid: int = 0):
         for f in m["files"]: f["is_unlocked"] = f["id"] in unlocked_ids
     return movies
 
+# ১. ক্যাটাগরি লিস্ট রিড করার এন্ডপয়েন্ট
 @api_router.get("/api/categories")
 async def get_categories():
-    if "all_cats" in category_cache:
-        return category_cache["all_cats"]
-    categories = await db.movies.distinct("categories")
-    result = [c for c in categories if c]
-    category_cache["all_cats"] = result
+    cursor = db.categories.find().sort("name", 1)
+    categories = await cursor.to_list(length=100)
+    result = []
+    for c in categories:
+        result.append({"name": c["name"], "icon": c.get("icon", "fa-solid fa-film")})
     return result
+
+# ২. ড্যাশবোর্ডের জন্য ফুল লিস্ট (আইডি সহ)
+@api_router.get("/api/admin/categories/all")
+async def admin_get_all_categories(auth: bool = Depends(verify_admin)):
+    cursor = db.categories.find().sort("name", 1)
+    categories = await cursor.to_list(length=100)
+    for c in categories:
+        c["_id"] = str(c["_id"])
+    return {"categories": categories}
+
+# ৩. নতুন ক্যাটাগরি অ্যাড করার এন্ডপয়েন্ট
+@api_router.post("/api/admin/categories/create")
+async def admin_create_category(data: dict = Body(...), auth: bool = Depends(verify_admin)):
+    name = data.get("name", "").strip()
+    icon = data.get("icon", "fa-solid fa-film").strip()
+    if not name:
+        return {"ok": False, "msg": "Name is required"}
+    
+    await db.categories.update_one({"name": name}, {"$set": {"name": name, "icon": icon}}, upsert=True)
+    clear_app_cache()
+    return {"ok": True}
+
+# ৪. ক্যাটাগরি ডিলিট করার এন্ডপয়েন্ট
+@api_router.delete("/api/admin/categories/{cat_id}")
+async def admin_delete_category(cat_id: str, auth: bool = Depends(verify_admin)):
+    await db.categories.delete_one({"_id": ObjectId(cat_id)})
+    clear_app_cache()
+    return {"ok": True}
 
 @api_router.get("/api/list")
 async def list_movies(page: int = 1, q: str = "", uid: int = 0, cat: str = ""):
