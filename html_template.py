@@ -43,10 +43,41 @@ HTML_CODE = r"""
         .search-input { width: 100%; padding: 16px; border-radius: 25px; border: none; outline: none; text-align: center; background: #1e293b; color: #fff; font-size: 18px; font-weight: bold; }
         
         .category-container { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 15px 15px; justify-content: center; }
-        .cat-btn { background: rgba(30, 41, 59, 0.8); color: #cbd5e1; border: 1px solid #334155; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; backdrop-filter: blur(5px); white-space: nowrap; }
-        .cat-btn:active { transform: scale(0.95); }
-        .cat-btn.active { background: linear-gradient(45deg, #ef4444, #f97316); color: white; border-color: transparent; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4); }
-
+        .cat-btn {
+            background: #000000;
+            color: #ffffff;
+            border: 2px solid transparent;
+            /* আরজিবি কালার বর্ডার তৈরির জন্য */
+            background-image: linear-gradient(#000, #000), linear-gradient(135deg, #ff0055, #00ffd5);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+        .cat-btn i {
+            font-size: 14px;
+            color: #00ffd5;
+        }
+        .cat-btn:active {
+            transform: scale(0.95);
+        }
+        /* বাটনটি একটিভ/সিলেক্টড অবস্থায় থাকলে লাল-কমলা থিম হবে */
+        .cat-btn.active {
+            background-image: linear-gradient(#ef4444, #ef4444), linear-gradient(135deg, #ef4444, #f97316);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+        }
+        .cat-btn.active i {
+            color: #fff;
+        }
         .section-title { padding: 5px 15px 15px; font-size: 20px; font-weight: 900; display: flex; align-items: center; gap: 8px; color:#ff416c; }
         
         .trending-container { display: flex; overflow-x: auto; gap: 15px; padding: 0 15px 20px; scroll-behavior: smooth; scroll-snap-type: x mandatory; }
@@ -1160,12 +1191,15 @@ HTML_CODE = r"""
                 const res = await fetch('/api/categories');
                 const cats = await res.json();
                 if(cats.length === 0) return;
-                let html = `<button class="cat-btn active" onclick="setCategory('', this)">All</button>`;
-                cats.forEach(c => { html += `<button class="cat-btn" onclick="setCategory('${c.replace(/'/g, "\\'")}', this)">${c}</button>`; });
+                
+                // ডিফল্ট All বাটনে Home আইকন থাকবে
+                let html = `<button class="cat-btn active" onclick="setCategory('', this)"><i class="fa-solid fa-house"></i> All</button>`;
+                cats.forEach(c => { 
+                    html += `<button class="cat-btn" onclick="setCategory('${c.name.replace(/'/g, "\\'")}', this)"><i class="${c.icon || 'fa-solid fa-film'}"></i> ${c.name}</button>`; 
+                });
                 document.getElementById('categoryBox').innerHTML = html;
             } catch(e) {}
         }
-
         function setCategory(cat, btnElement) {
             activeCategory = cat;
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
