@@ -53,18 +53,21 @@ FIXED_CATEGORIES = [
     "Movies", "Web-Series"
 ]
 
-# ক্যাটাগরি কিবোর্ড জেনারেটর ফাংশন
-def get_category_keyboard(selected_cats: list):
+async def get_category_keyboard(selected_cats: list):
     builder = InlineKeyboardBuilder()
-    for cat in FIXED_CATEGORIES:
-        # সিলেক্ট করা থাকলে বাটনের আগে ✅ শো করবে
-        prefix = "✅ " if cat in selected_cats else ""
-        builder.button(text=f"{prefix}{cat}", callback_data=f"tgcat_{cat}")
     
-    # স্কিপ এবং কমপ্লিট বাটন
+    # ডাটাবেস থেকে ডাইনামিকভাবে সমস্ত ক্যাটাগরি লোড করা হচ্ছে
+    cursor = db.categories.find().sort("name", 1)
+    categories = await cursor.to_list(length=100)
+    
+    for cat in categories:
+        cat_name = cat["name"]
+        prefix = "✅ " if cat_name in selected_cats else ""
+        builder.button(text=f"{prefix}{cat_name}", callback_data=f"tgcat_{cat_name}")
+    
     builder.button(text="⏭️ Skip / None", callback_data="tgcat_skip")
     builder.button(text="🚀 Complete & Save (Done)", callback_data="tgcat_done")
-    builder.adjust(2)  # প্রতি লাইনে ২টি করে বাটন
+    builder.adjust(2)
     return builder.as_markup()
     
 # বটের স্প্যাম ও গ্রুপর রিপ্লাই মেসেজ ব্যাকগ্রাউন্ডে স্বয়ংক্রিয়ভাবে ক্লিন করার হেল্পার ফাংশন
@@ -187,7 +190,7 @@ async def start_cmd(message: types.Message, state: FSMContext):
         user_name = message.from_user.first_name or "User"
         text = (
             f"👋 <b>Welcome, {user_name}!</b>\n"
-            f"Welcome to MovieZone BD - Cinema in your pocket.\n\n"
+            f"Welcome to Prime CineFlix - Cinema in your pocket.\n\n"
             f"📊 <b>YOUR PROFILE STATS:</b>\n"
             f"━━━━━━━━━━━━━━━━━━\n"
             f"👤 <b>Account:</b> {user_name}\n"
