@@ -41,18 +41,57 @@ HTML_CODE = r"""
 
         .search-box { padding: 15px; }
         .search-input { width: 100%; padding: 16px; border-radius: 25px; border: none; outline: none; text-align: center; background: #1e293b; color: #fff; font-size: 18px; font-weight: bold; }
-        .category-container { 
-            display: flex; 
-            overflow-x: auto; /* ডানে-বামে স্ক্রোল করার জন্য */
-            gap: 10px; 
-            padding: 10px 15px 18px; 
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch; /* আইওএস এবং অ্যান্ড্রয়েড স্মুথ স্ক্রোলের জন্য */
+        /* ক্যাটাগরি কন্টেইনার - গ্রিড র‍্যাপ এবং সেন্টার এলাইন */
+        .category-container {
+            display: flex;
+            flex-wrap: wrap; 
+            gap: 8px; /* বাটনগুলোর মধ্যকার গ্যাপ ছোট করা হয়েছে */
+            padding: 10px 15px;
+            justify-content: center; 
             width: 100%;
         }
-        /* স্ক্রোলবারটি যেন হাইড থাকে এবং দেখতে সুন্দর লাগে */
-        .category-container::-webkit-scrollbar { 
-            display: none; 
+        /* রানিং আরজিবি গ্লোয়িং বর্ডার সহ ছোট ক্যাটাগরি বাটন */
+        .cat-btn {
+            background: #000000;
+            color: #ffffff;
+            border: 1.5px solid transparent;
+            /* সার্বক্ষণিক রানিং আরজিবি ইফেক্ট */
+            background-image: linear-gradient(#000, #000), linear-gradient(135deg, #ff0055, #00ffd5, #ffaa00, #ff0055);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            background-size: 200% 200%;
+            animation: rgbPulse 4s linear infinite; 
+            padding: 6px 14px; /* বাটন সাইজ ছোট করা হয়েছে */
+            border-radius: 20px; 
+            font-size: 12px; /* টেক্সট সাইজ ছোট করা হয়েছে */
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+        .cat-btn i {
+            font-size: 11px;
+            color: #00ffd5;
+        }
+        .cat-btn:active {
+            transform: scale(0.95);
+        }
+        .cat-btn.active {
+            background-image: linear-gradient(#ef4444, #ef4444), linear-gradient(135deg, #ef4444, #f97316);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.7);
+        }
+        .cat-btn.active i {
+            color: #fff;
+        }
+        /* আরজিবি অ্যানিমেশন কি-ফ্রেম */
+        @keyframes rgbPulse {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
         .cat-btn {
             background: #000000;
