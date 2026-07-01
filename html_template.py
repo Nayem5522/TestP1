@@ -41,8 +41,19 @@ HTML_CODE = r"""
 
         .search-box { padding: 15px; }
         .search-input { width: 100%; padding: 16px; border-radius: 25px; border: none; outline: none; text-align: center; background: #1e293b; color: #fff; font-size: 18px; font-weight: bold; }
-        
-        .category-container { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 15px 15px; justify-content: center; }
+        .category-container { 
+            display: flex; 
+            overflow-x: auto; /* ডানে-বামে স্ক্রোল করার জন্য */
+            gap: 10px; 
+            padding: 10px 15px 18px; 
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; /* আইওএস এবং অ্যান্ড্রয়েড স্মুথ স্ক্রোলের জন্য */
+            width: 100%;
+        }
+        /* স্ক্রোলবারটি যেন হাইড থাকে এবং দেখতে সুন্দর লাগে */
+        .category-container::-webkit-scrollbar { 
+            display: none; 
+        }
         .cat-btn {
             background: #000000;
             color: #ffffff;
