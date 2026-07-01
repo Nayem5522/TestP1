@@ -1557,3 +1557,9 @@ async def get_analytics(auth: bool = Depends(verify_admin)):
     c_s = await db.movies.aggregate([{"$unwind": "$categories"}, {"$group": {"_id": "$categories", "total_views": {"$sum": "$clicks"}}}, {"$sort": {"total_views": -1}}, {"$limit": 5}]).to_list(5)
     t_r = await db.reviews.aggregate([{"$group": {"_id": "$movie_title", "avg_rating": {"$avg": "$rating"}, "total_reviews": {"$sum": 1}}}, {"$sort": {"avg_rating": -1, "total_reviews": -1}}, {"$limit": 5}]).to_list(5)
     return {"live_online": live, "active_today": len(a_t), "active_week": len(a_w), "total_reviews": await db.reviews.count_documents({}), "total_requests": await db.requests.count_documents({}), "pending_requests": await db.requests.count_documents({"status": "pending"}), "category_stats": c_s, "top_rated": t_r}
+
+
+
+@api_router.get("/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": datetime.datetime.utcnow().isoformat()}
