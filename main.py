@@ -15,27 +15,32 @@ import bot.handlers
 from bot.workers import video_queue_worker, auto_delete_worker
 
 async def seed_categories():
+    # ডেটাবেস থেকে যেকোনো পুরোনো ডেটা ক্লিন করে ক্রমানুসারে নতুন ক্যাটাগরি সেট করবে
+    has_old_home = await db.categories.find_one({"name": "Home"})
     count = await db.categories.count_documents({})
-    if count == 0:
+    
+    if has_old_home or count == 0:
+        await db.categories.delete_many({}) # পুরোনো ডেটা ক্লিন করা হচ্ছে
         defaults = [
-            {"name": "Latest", "icon": "fa-solid fa-clock"},
-            {"name": "For You", "icon": "fa-solid fa-wand-magic-sparkles"},
-            {"name": "Trending", "icon": "fa-solid fa-fire"},
-            {"name": "Movies", "icon": "fa-solid fa-film"},
-            {"name": "Web-Series", "icon": "fa-solid fa-circle-play"},
-            {"name": "Hindi", "icon": "fa-solid fa-masks-theater"},
-            {"name": "Action", "icon": "fa-solid fa-hand-fist"},
-            {"name": "Anime", "icon": "fa-solid fa-ghost"},
-            {"name": "Bangla", "icon": "fa-solid fa-clapperboard"},
-            {"name": "Bangla Dubbed", "icon": "fa-solid fa-comment-dots"},
-            {"name": "Dual Audio", "icon": "fa-solid fa-headphones"},
-            {"name": "English", "icon": "fa-solid fa-video"},
-            {"name": "Hindi Dubbed", "icon": "fa-solid fa-comments"},
-            {"name": "Horror", "icon": "fa-solid fa-skull"},
-            {"name": "18+ Adult", "icon": "fa-solid fa-user-lock"},
-            {"name": "Korean", "icon": "fa-solid fa-tv"},
+            {"name": "Latest", "icon": "fa-solid fa-clock", "order": 1},
+            {"name": "For You", "icon": "✦", "order": 2}, # স্পেশাল ✦ ক্যারেক্টার আইকন
+            {"name": "Trending", "icon": "fa-solid fa-fire", "order": 3},
+            {"name": "Movies", "icon": "fa-solid fa-film", "order": 4},
+            {"name": "Web-Series", "icon": "fa-solid fa-circle-play", "order": 5},
+            {"name": "Hindi", "icon": "fa-solid fa-masks-theater", "order": 6},
+            {"name": "Action", "icon": "fa-solid fa-hand-fist", "order": 7},
+            {"name": "Anime", "icon": "fa-solid fa-ghost", "order": 8},
+            {"name": "Bangla", "icon": "fa-solid fa-clapperboard", "order": 9},
+            {"name": "Bangla Dubbed", "icon": "fa-solid fa-comment-dots", "order": 10},
+            {"name": "Dual Audio", "icon": "fa-solid fa-headphones", "order": 11},
+            {"name": "English", "icon": "fa-solid fa-video", "order": 12},
+            {"name": "Hindi Dubbed", "icon": "fa-solid fa-comments", "order": 13},
+            {"name": "Horror", "icon": "fa-solid fa-skull", "order": 14},
+            {"name": "18+ Adult", "icon": "fa-solid fa-user-lock", "order": 15},
+            {"name": "Korean", "icon": "fa-solid fa-tv", "order": 16}
         ]
         await db.categories.insert_many(defaults)
+        logger.info("Database categories initialized in custom sequence.")
 
 # CORS মিডেলওয়্যার কনফিগারেশন
 app.add_middleware(
