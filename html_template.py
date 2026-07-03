@@ -433,8 +433,8 @@ HTML_CODE = r"""
             100% { transform: translateY(-110vh) rotate(360deg) scale(1.3); opacity: 0; }
 }
 
-/* 🎨 UNIFIED BADGE STYLES (NO CONFLICTS) */
-        .top-badge, .ep-badge, .view-badge { 
+/* 🎨 UNIFIED BADGE STYLES (PIXEL-PERFECT POSITIONING) */
+        .top-badge, .ep-badge, .view-badge, .lang-card-badge { 
             position: absolute; 
             font-weight: bold; 
             padding: 4px 8px; 
@@ -443,37 +443,35 @@ HTML_CODE = r"""
             z-index: 10; 
             color: white;
         }
+        
+        /* ৩ পিক্সেল আরজিবি বর্ডার এড়াতে সব ব্যাজকে ১২ পিক্সেল মার্জিন দেওয়া হয়েছে */
         .top-badge { 
-            top: 10px; 
-            left: 10px; 
+            top: 12px; 
+            left: 12px; 
             background: linear-gradient(45deg, #ff0000, #cc0000); 
         }
         .view-badge { 
-            bottom: 10px; 
-            left: 10px; 
+            bottom: 12px; 
+            left: 12px; 
             background: rgba(0,0,0,0.75); 
         }
-        /* ep-badge-কে আমরা নিচে ডানদিকে নিয়ে গেলাম যাতে ওপরের কোণায় লাল ল্যাঙ্গুয়েজ ব্যাজটি সুন্দরভাবে বসতে পারে */
         .ep-badge { 
-            bottom: 10px; 
-            right: 10px; 
+            bottom: 12px; 
+            right: 12px; 
             background: #10b981; 
         }
 
-        /* 🏷️ ডাইনামিক ল্যাঙ্গুয়েজ ব্যাজ - ডানদিকের ওপরের কোণায় (Top-Right) */
+        /* 🏷️ ডাইনামিক ল্যাঙ্গুয়েজ ব্যাজ - ডানদিকের ওপরের কোণায় (পোস্টারের ভেতরে) */
         .lang-card-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 12px;
+            right: 12px;
             background: linear-gradient(135deg, #ef4444, #dc2626);
             color: #ffffff !important;
             font-size: 10px;
             font-weight: 900;
             padding: 4px 10px;
-            border-radius: 6px;
             text-transform: uppercase;
             box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
-            z-index: 10;
             overflow: hidden;
             letter-spacing: 0.5px;
         }
@@ -492,7 +490,7 @@ HTML_CODE = r"""
                 rgba(255, 255, 255, 0.45), 
                 transparent
             );
-            transform: skewX(-25deg); /* তেরা ভাবে স্ল্যান্ট */
+            transform: skewX(-25deg);
             animation: sweepGlossy 2.5s infinite ease-in-out;
         }
 
@@ -502,7 +500,7 @@ HTML_CODE = r"""
             100% { left: 150%; }
         }
 
-        /* 🔥 স্লাইডার ব্যাজের জন্য স্পেশাল ছোট জ্বলন্ত ফায়ার ইমোজি ক্লাস */
+        /* স্লাইডার ব্যাজের জন্য ছোট জ্বলন্ত ফায়ার ইমোজি ক্লাস */
         .top-badge-fire {
             display: inline-block;
             font-size: 13px;
@@ -1493,8 +1491,8 @@ HTML_CODE = r"""
                     
                     let cardHtml = `<div class="card" onclick="openQualityModal(this)" data-title="${encodeURIComponent(m._id)}">
                         <div class="post-content">
-                            <!-- ডাইনামিক গোল্ডেন-বেগুনি শ্যাডো সহ স্টার স্টার আইকন এবং ভাষা ব্যাজ -->
-                            <div class="lang-badge">${langBadge}</div>
+                            <!-- ক্লাস নাম সংশোধন করে lang-card-badge করা হলো -->
+                            <div class="lang-card-badge">${langBadge}</div>
                             <img src="/api/image/${m.photo_id}" loading="lazy" onerror="this.src='https://via.placeholder.com/640x360?text=No+Image'">
                             <div class="ep-badge"><i class="fa-solid fa-list"></i> ${m.files.length}</div>
                             <div class="view-badge" id="list-view-${makeSafeId(m._id)}"><i class="fa-solid fa-eye"></i> ${formatViews(m.clicks)}</div>
