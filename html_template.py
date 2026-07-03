@@ -41,38 +41,86 @@ HTML_CODE = r"""
 
         .search-box { padding: 15px; }
         .search-input { width: 100%; padding: 16px; border-radius: 25px; border: none; outline: none; text-align: center; background: #1e293b; color: #fff; font-size: 18px; font-weight: bold; }
-        /* ক্যাটাগরি কন্টেইনার - গ্রিড র‍্যাপ এবং সেন্টার এলাইন */
+        /* 🎨 PREMIUM PILL-SHAPED CATEGORY BUTTONS */
         .category-container {
             display: flex;
             flex-wrap: wrap; 
-            gap: 8px; /* বাটনগুলোর মধ্যকার গ্যাপ ছোট করা হয়েছে */
-            padding: 10px 15px;
+            gap: 10px;
+            padding: 15px;
             justify-content: center; 
             width: 100%;
         }
-        /* রানিং আরজিবি গ্লোয়িং বর্ডার সহ ছোট ক্যাটাগরি বাটন */
         .cat-btn {
-            background: #000000;
-            color: #ffffff;
-            border: 1.5px solid transparent;
-            /* সার্বক্ষণিক রানিং আরজিবি ইফেক্ট */
-            background-image: linear-gradient(#000, #000), linear-gradient(135deg, #ff0055, #00ffd5, #ffaa00, #ff0055);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            background-size: 200% 200%;
-            animation: rgbPulse 4s linear infinite; 
-            padding: 6px 14px; /* বাটন সাইজ ছোট করা হয়েছে */
-            border-radius: 20px; 
-            font-size: 12px; /* টেক্সট সাইজ ছোট করা হয়েছে */
+            background: rgba(30, 41, 59, 0.6);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 20px;
+            border-radius: 30px; /* পারফেক্ট ক্যাপসুল/পিল শেপ */
+            font-size: 13px;
             font-weight: 800;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             white-space: nowrap;
-            transition: transform 0.2s;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            /* সাধারণ বাটনের জন্য ব্রিদিং শ্যাডো পালস */
+            animation: btnShadowPulse 3s infinite ease-in-out;
         }
+        
+        /* একটিভ বাটন - গর্জিয়াস অরেঞ্জ-রেড গ্লোয়িং থিম */
+        .cat-btn.active {
+            background: linear-gradient(135deg, #ff4e2a, #ff7300);
+            color: #ffffff;
+            border-color: transparent;
+            animation: activeBtnShadowPulse 2s infinite ease-in-out; /* বড় হওয়া এবং শ্যাডো পালস */
+        }
+
+        /* 🕰️ ১. Latest (ঘড়ি) আইকন অ্যানিমেশন - কাঁটা ঘোরার মতো ঘুরতে থাকবে */
+        .cat-btn i.fa-clock, .fa-clock-rotate-left {
+            display: inline-block;
+            animation: spinClock 6s linear infinite;
+        }
+        @keyframes spinClock {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ✨ ২. For You (স্টার/স্পার্কল) আইকন অ্যানিমেশন - বড় হয়ে তেড়া হবে এবং আগের জায়গায় ফিরবে */
+        .cat-btn i.fa-wand-magic-sparkles, .cat-btn i.fa-star {
+            display: inline-block;
+            animation: sparkleStar 2.2s ease-in-out infinite;
+        }
+        @keyframes sparkleStar {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.3) rotate(20deg); filter: drop-shadow(0 0 6px #00ffd5); }
+        }
+
+        /* 🔥 ৩. Trending (আগুন) আইকন অ্যানিমেশন - বাস্তবের আগুনের মতো কাঁপতে থাকবে */
+        .fa-fire, .fa-fire-flame-curved {
+            display: inline-block;
+            animation: flickerFlame 0.8s ease-in-out infinite alternate;
+            color: #ff4e2a !important;
+        }
+        @keyframes flickerFlame {
+            0% { transform: scale(1) rotate(-3deg); filter: brightness(1); }
+            100% { transform: scale(1.18) rotate(4deg); filter: brightness(1.25) drop-shadow(0 0 8px #ff7300); }
+        }
+
+        /* 🌟 ৪. বাটনগুলোর জন্য ব্রিদিং পালস এবং শ্যাডো অ্যানিমেশন */
+        @keyframes btnShadowPulse {
+            0%, 100% { box-shadow: 0 4px 10px rgba(0,0,0,0.3); transform: scale(1); }
+            50% { box-shadow: 0 4px 16px rgba(255,255,255,0.06); transform: scale(0.98); }
+        }
+        @keyframes activeBtnShadowPulse {
+            0%, 100% { box-shadow: 0 4px 12px rgba(255, 78, 42, 0.4); transform: scale(1); }
+            50% { box-shadow: 0 4px 22px rgba(255, 78, 42, 0.85); transform: scale(1.04); }
+        }
+
+
+
+        
         .cat-btn i {
             font-size: 11px;
             color: #00ffd5;
@@ -487,7 +535,7 @@ HTML_CODE = r"""
     <div id="categoryBox" class="category-container"></div>
 
     <div id="trendingWrapper">
-        <div class="section-title"><i class="fa-solid fa-bolt text-yellow-400"></i>Trending now</div>
+        <div class="section-title"><i class="fa-solid fa-fire"></i> Trending now</div>
         <div class="trending-container" id="trendingGrid"></div>
     </div>
 
@@ -1281,7 +1329,7 @@ HTML_CODE = r"""
                     loadedMovies[m._id] = m;
                     return `<div class="trending-card" onclick="openQualityModal(this)" data-title="${encodeURIComponent(m._id)}">
                         <div class="post-content">
-                            <div class="top-badge">🔥 TOP</div>
+                            <div class="top-badge"><i class="fa-solid fa-fire"></i> TOP</div>
                             <img src="/api/image/${m.photo_id}" loading="lazy" onerror="this.src='https://via.placeholder.com/640x360?text=No+Image'">
                             <div class="ep-badge"><i class="fa-solid fa-list"></i> ${m.files.length}</div>
                             <div class="view-badge" id="trend-view-${makeSafeId(m._id)}"><i class="fa-solid fa-eye"></i> ${formatViews(m.clicks)}</div>
