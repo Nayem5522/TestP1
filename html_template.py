@@ -49,7 +49,7 @@ HTML_CODE = r"""
             overflow-x: auto;
             flex-wrap: nowrap;
             gap: 12px;
-            padding: 15px 15px 22px; 
+            padding: 15px 15px 25px; 
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
             width: 100%;
@@ -58,7 +58,7 @@ HTML_CODE = r"""
             display: none; 
         }
         
-        /* আন-সিলেক্টড বাটনের সাধারণ ছাই ব্যাকগ্রাউন্ড */
+        /* আন-সিলেক্টড বাটনের সাধারণ ছাই ব্যাকগ্রাউন্ড এবং মৃদু পালস */
         .cat-btn {
             background: #e2e8f0;
             color: #0f172a;
@@ -73,7 +73,6 @@ HTML_CODE = r"""
             gap: 8px;
             white-space: nowrap;
             transition: all 0.25s ease;
-            /* সাধারণ বাটনের জন্য ব্রিদিং শ্যাডো অ্যানিমেশন */
             animation: unselectedPulse 3s infinite ease-in-out;
         }
         .cat-btn i {
@@ -85,22 +84,22 @@ HTML_CODE = r"""
         }
         
         /* 🕰️ Latest (Active) বাটন - সলিড কোরাল-অরেঞ্জ ব্যাকগ্রাউন্ড এবং পালসিং অরেঞ্জ শ্যাডো */
-        .cat-btn.active-latest {
+        .cat-btn.active.active-latest {
             background: linear-gradient(135deg, #ff4e2a, #ff7300) !important;
             color: #ffffff !important;
             animation: activeLatestPulse 2s infinite ease-in-out !important;
         }
-        .cat-btn.active-latest i {
+        .cat-btn.active.active-latest i {
             color: #ffffff !important;
         }
 
-        /* ✦ For You (Active) বাটন - সলিড সাদা ব্যাকগ্রাউন্ড, বেগুনি টেক্সট এবং ডার্ক বেগুনি পালসিং শ্যাডো */
-        .cat-btn.active-foryou {
+        /* ✦ For You (Active) বাটন - স্পেসিফিসিটি ফিক্সড (বেগুনি টেক্সট ও বেগুনি ব্রিদিং শ্যাডো) */
+        .cat-btn.active.active-foryou {
             background: #ffffff !important;
-            color: #7c3aed !important;
+            color: #7c3aed !important; /* বেগুনি কালার টেক্সট */
             animation: activeForYouPulse 2s infinite ease-in-out !important;
         }
-        .cat-btn.active-foryou .sparkle-icon {
+        .cat-btn.active.active-foryou .sparkle-icon {
             color: #7c3aed !important;
         }
 
@@ -134,7 +133,7 @@ HTML_CODE = r"""
             100% { transform: rotate(360deg); }
         }
 
-        /* ✦ স্টার অ্যানিমেশন - হালকা বড় এবং তেড়া হবে */
+        /* ✦ স্টার অ্যানিমেশন */
         @keyframes sparkleStar {
             0%, 100% { transform: scale(1) rotate(0deg); }
             50% { transform: scale(1.3) rotate(20deg); }
@@ -151,18 +150,30 @@ HTML_CODE = r"""
             100% { transform: scale(1.18) rotate(4deg); }
         }
 
-        /* 🌟 ব্রিদিং শ্যাডো অ্যানিমেশন কি-ফ্রেম সমূহ (শ্যাডো গাঢ় হবে আবার কমে যাবে) */
+        /* 🌟 ব্রিদিং শ্যাডো অ্যানিমেশন কি-ফ্রেম সমূহ (শ্যাডো গাঢ় হবে, ছড়িয়ে যাবে এবং আবার কমে যাবে) */
         @keyframes unselectedPulse {
             0%, 100% { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15); transform: scale(1); }
             50% { box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35); transform: scale(0.98); }
         }
         @keyframes activeLatestPulse {
-            0%, 100% { box-shadow: 0 4px 10px rgba(255, 78, 42, 0.4); transform: scale(1); }
-            50% { box-shadow: 0 4px 28px rgba(255, 78, 42, 0.9); transform: scale(1.03); }
+            0%, 100% { 
+                box-shadow: 0 0 8px 2px rgba(255, 78, 42, 0.4); 
+                transform: scale(1); 
+            }
+            50% { 
+                box-shadow: 0 0 25px 8px rgba(255, 78, 42, 0.85); /* শ্যাডো অনেক গাঢ় ও বড় হবে */
+                transform: scale(1.03); 
+            }
         }
         @keyframes activeForYouPulse {
-            0%, 100% { box-shadow: 0 4px 10px rgba(124, 58, 237, 0.4); transform: scale(1); }
-            50% { box-shadow: 0 4px 28px rgba(124, 58, 237, 0.9); transform: scale(1.03); }
+            0%, 100% { 
+                box-shadow: 0 0 8px 2px rgba(124, 58, 237, 0.4); 
+                transform: scale(1); 
+            }
+            50% { 
+                box-shadow: 0 0 25px 8px rgba(124, 58, 237, 0.85); /* বেগুনি গ্লো বড় হয়ে ছড়িয়ে পড়বে */
+                transform: scale(1.03); 
+            }
         }
 
 
@@ -1299,13 +1310,14 @@ HTML_CODE = r"""
                         iconHtml = `<i class="${c.icon || 'fa-solid fa-film'}"></i>`;
                     }
                     
-                    html += `<button class="${btnClass}" onclick="setCategory('${catQuery}', this)"><span style="display:flex; align-items:center; gap:8px;">${iconHtml} ${c.name}</span></button>`;
+                    // প্যারামিটারে সরাসরি c.name পাস করা হচ্ছে যাতে টেক্সট পার্সিং করতে না হয়
+                    html += `<button class="${btnClass}" onclick="setCategory('${catQuery}', this, '${c.name}')"><span style="display:flex; align-items:center; gap:8px;">${iconHtml} ${c.name}</span></button>`;
                 });
                 document.getElementById('categoryBox').innerHTML = html;
             } catch(e) {}
         }
 
-        function setCategory(cat, btn) {
+        function setCategory(cat, btn, catName) {
             activeCategory = cat;
             
             // পূর্বের একটিভ ক্লাসগুলো রিমুভ করা হচ্ছে
@@ -1313,11 +1325,10 @@ HTML_CODE = r"""
                 b.classList.remove('active', 'active-latest', 'active-foryou');
             });
             
-            // ক্লিক করা বাটনের নাম অনুযায়ী কাস্টম একটিভ ক্লাস সেট করা হচ্ছে
-            let btnText = btn.innerText.trim();
-            if (btnText.includes("Latest")) {
+            // ডাটাবেস ক্যাটাগরি নাম অনুযায়ী স্পেসিফিক ক্লাস যুক্ত করা হচ্ছে
+            if (catName === "Latest") {
                 btn.classList.add('active', 'active-latest');
-            } else if (btnText.includes("For You")) {
+            } else if (catName === "For You") {
                 btn.classList.add('active', 'active-foryou');
             } else {
                 btn.classList.add('active');
@@ -1327,12 +1338,12 @@ HTML_CODE = r"""
             let titleEl = document.getElementById('recentTitle');
             if (cat === "") {
                 titleEl.innerHTML = `<i class="fa-solid fa-clock text-blue-400"></i> Discover Latest Blockbusters`;
-            } else if (cat === "For You") {
+            } else if (catName === "For You") {
                 titleEl.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Handpicked For You`;
-            } else if (cat === "Trending") {
+            } else if (catName === "Trending") {
                 titleEl.innerHTML = `<i class="fa-solid fa-fire text-orange-500"></i> Trending Worldwide`;
             } else {
-                titleEl.innerHTML = `<i class="fa-solid fa-film text-red-500"></i> Explored ${btnText} Collection`;
+                titleEl.innerHTML = `<i class="fa-solid fa-film text-red-500"></i> Explored ${catName} Collection`;
             }
 
             searchQuery = ""; 
