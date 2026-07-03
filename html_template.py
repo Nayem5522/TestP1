@@ -436,6 +436,72 @@ HTML_CODE = r"""
             80% { opacity: 0.8; }
             100% { transform: translateY(-110vh) rotate(360deg) scale(1.3); opacity: 0; }
 }
+/* 🔥 ডাইনামিক জ্বলন্ত ফায়ার ইমোজি স্টাইল */
+        .trending-fire-icon {
+            display: inline-block;
+            font-size: 22px;
+            margin-right: 8px;
+            animation: flickerFlame 0.8s ease-in-out infinite alternate;
+            /* লাল ব্যাকগ্রাউন্ডের ওপরেও যেন উজ্জ্বল দেখায় সেজন্য ডুয়াল নিওন গ্লো ফিল্টার */
+            filter: drop-shadow(0 0 12px #ffaa00) drop-shadow(0 0 4px #ff3300);
+            vertical-align: middle;
+        }
+
+        /* 🏷️ ডাইনামিক ল্যাঙ্গুয়েজ ব্যাজ (তেরা গ্লসি সুইপ অ্যানিমেশন সহ) */
+        .lang-card-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #ef4444, #dc2626); /* প্রমিজিং ভাইব্রেন্ট রেড */
+            color: #ffffff !important;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+            z-index: 10;
+            overflow: hidden; /* গ্লসি সুইপটি ক্লিপ করার জন্য */
+            letter-spacing: 0.5px;
+        }
+
+        /* তেরা ভাবে পরিষ্কার হওয়া (Diagonal Glossy Shine) রিফ্লেকশন ইফেক্ট */
+        .lang-card-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.45), 
+                transparent
+            );
+            transform: skewX(-25deg); /* তেরা ভাবে ডায়াগনাল স্ল্যান্ট */
+            animation: sweepGlossy 2.5s infinite ease-in-out;
+        }
+
+        @keyframes sweepGlossy {
+            0% { left: -150%; }
+            50% { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        /* কোয়ালিটি বা এপিসোড কাউন্ট ব্যাজটি নিচে ডানে সরিয়ে নেওয়া হলো */
+        .ep-badge { 
+            position: absolute;
+            bottom: 10px; 
+            right: 10px; 
+            background: #10b981; 
+            font-weight: bold; 
+            padding: 4px 8px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+            z-index: 10; 
+            color: white;
+        }
     </style>
 </head>
 <body onclick="closeMenu(event)">
@@ -537,7 +603,7 @@ HTML_CODE = r"""
     <div id="categoryBox" class="category-container"></div>
 
     <div id="trendingWrapper">
-        <div class="section-title"><i class="fa-solid fa-fire"></i> Trending now</div>
+        <div class="section-title"><span class="trending-fire-icon">🔥</span> Trending now</div>
         <div class="trending-container" id="trendingGrid"></div>
     </div>
 
@@ -1371,17 +1437,22 @@ HTML_CODE = r"""
                 if(data.length === 0) return document.getElementById('trendingWrapper').style.display = 'none';
                 grid.innerHTML = data.map(m => {
                     loadedMovies[m._id] = m;
+                    
+                    // ভাষা ডিটেক্ট করা হচ্ছে
+                    let langBadge = detectLanguage(m._id);
+                    
                     return `<div class="trending-card" onclick="openQualityModal(this)" data-title="${encodeURIComponent(m._id)}">
                         <div class="post-content">
-                            <div class="top-badge"><i class="fa-solid fa-fire"></i> TOP</div>
+                            <div class="top-badge"><span class="trending-fire-icon">🔥</span> TOP</div>
+                            <div class="lang-card-badge">${langBadge}</div>
                             <img src="/api/image/${m.photo_id}" loading="lazy" onerror="this.src='https://via.placeholder.com/640x360?text=No+Image'">
                             <div class="ep-badge"><i class="fa-solid fa-list"></i> ${m.files.length}</div>
                             <div class="view-badge" id="trend-view-${makeSafeId(m._id)}"><i class="fa-solid fa-eye"></i> ${formatViews(m.clicks)}</div>
                         </div>
                         <div class="card-footer">
                             <div class="channel-logo">
-    <img src="https://i.ibb.co/XHhKLn7/photo-2026-06-23-19-29-46-7654675389934993448.jpg" alt="Logo">
-</div>
+                                <img src="https://i.ibb.co/XHhKLn7/photo-2026-06-23-19-29-46-7654675389934993448.jpg" alt="Logo">
+                            </div>
                             <div class="title-text">${m._id}</div>
                         </div>
                     </div>`;
@@ -1403,16 +1474,21 @@ HTML_CODE = r"""
                 
                 data.movies.forEach((m, index) => {
                     loadedMovies[m._id] = m; 
+                    
+                    // ভাষা ডিটেক্ট করা হচ্ছে
+                    let langBadge = detectLanguage(m._id);
+                    
                     let cardHtml = `<div class="card" onclick="openQualityModal(this)" data-title="${encodeURIComponent(m._id)}">
                         <div class="post-content">
+                            <div class="lang-card-badge">${langBadge}</div>
                             <img src="/api/image/${m.photo_id}" loading="lazy" onerror="this.src='https://via.placeholder.com/640x360?text=No+Image'">
                             <div class="ep-badge"><i class="fa-solid fa-list"></i> ${m.files.length}</div>
                             <div class="view-badge" id="list-view-${makeSafeId(m._id)}"><i class="fa-solid fa-eye"></i> ${formatViews(m.clicks)}</div>
                         </div>
                         <div class="card-footer">
                             <div class="channel-logo">
-    <img src="https://i.ibb.co/XHhKLn7/photo-2026-06-23-19-29-46-7654675389934993448.jpg" alt="Logo">
-</div>
+                                <img src="https://i.ibb.co/XHhKLn7/photo-2026-06-23-19-29-46-7654675389934993448.jpg" alt="Logo">
+                            </div>
                             <div class="title-text">${m._id}</div>
                         </div>
                     </div>`;
@@ -1861,6 +1937,40 @@ HTML_CODE = r"""
         }
 
         initApp();
+
+        // ডাইনামিক ল্যাঙ্গুয়েজ ডিটেক্টর স্ক্যানার
+        function detectLanguage(title) {
+            let t = title.toLowerCase();
+            
+            let hasBangla = t.includes("bangla") || t.includes("বাংলা");
+            let hasHindi = t.includes("hindi") || t.includes("হিন্দি");
+            let hasEnglish = t.includes("english") || t.includes("ইংরেজি") || t.includes("eng");
+            let hasKorean = t.includes("korean") || t.includes("কোরিয়ান");
+            let hasTamil = t.includes("tamil") || t.includes("তামিল");
+            let hasTelugu = t.includes("telugu") || t.includes("তেলেগু");
+            let hasDual = t.includes("dual") || t.includes("ডুয়েল") || t.includes("multi");
+
+            // কতগুলো ভাষা পাওয়া গেছে তা গণনা করা হচ্ছে
+            let count = 0;
+            if (hasBangla) count++;
+            if (hasHindi) count++;
+            if (hasEnglish) count++;
+            if (hasKorean) count++;
+            if (hasTamil) count++;
+            if (hasTelugu) count++;
+
+            if (hasDual || count > 1) {
+                return "Dual Audio";
+            }
+            if (hasBangla) return "Bangla";
+            if (hasHindi) return "Hindi";
+            if (hasEnglish) return "English";
+            if (hasKorean) return "Korean";
+            if (hasTamil) return "Tamil";
+            if (hasTelugu) return "Telugu";
+
+            return "Movie"; // কোনো ভাষা না মিললে ডিফল্ট হিসেবে Movie দেখাবে
+        }
     </script>
 </body>
 </html>
