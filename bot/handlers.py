@@ -45,19 +45,12 @@ class AdminStates(StatesGroup):
     waiting_for_bulk_quality = State()
     waiting_for_bulk_files = State()
 
-# ফিক্সড ক্যাটাগরি লিস্ট (আপনার ইমেজ অনুযায়ী)
-FIXED_CATEGORIES = [
-    "Home", "18+ Adult", "Action", "Anime", "Bangla", 
-    "Bangla Dubbed", "Dual Audio", "English", "Hindi", 
-    "Hindi Dubbed", "Horror", "Korean", "Trending", 
-    "Movies", "Web-Series"
-]
 
 async def get_category_keyboard(selected_cats: list):
     builder = InlineKeyboardBuilder()
     
-    # ডাটাবেস থেকে ডাইনামিকভাবে সমস্ত ক্যাটাগরি লোড করা হচ্ছে
-    cursor = db.categories.find().sort("name", 1)
+    # ডাটাবেস থেকে 'order' ফিল্ড অনুযায়ী ক্রমানুসারে ক্যাটাগরি লোড করা হচ্ছে
+    cursor = db.categories.find().sort("order", 1)
     categories = await cursor.to_list(length=100)
     
     for cat in categories:
