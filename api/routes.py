@@ -1096,12 +1096,18 @@ async def list_movies(page: int = 1, q: str = "", uid: int = 0, cat: str = ""):
         skip = (page - 1) * limit
         match_stage = {}
         if q: match_stage["title"] = {"$regex": q, "$options": "i"}
-        if cat: match_stage["categories"] = cat
+
+        # 🚀 For You-এর জন্য ভিউ সর্ট লজিক এবং অন্যান্য ক্যাটাগরির জন্য সর্ট লজিক
+        if cat == "For You":
+            sort_stage = {"clicks": -1} # সর্বোচ্চ ভিউ পাওয়া কনটেন্টগুলো সবার উপরে থাকবে
+        else:
+            sort_stage = {"created_at": -1} # নতুন আপলোড করাগুলো উপরে, পুরোনো গুলো নিচে
+            if cat: match_stage["categories"] = cat
 
         pipeline = [
             {"$match": match_stage},
             {"$group": {"_id": "$title", "photo_id": {"$first": "$photo_id"}, "db_photo_id": {"$first": "$db_photo_id"}, "clicks": {"$sum": "$clicks"}, "created_at": {"$max": "$created_at"}, "files": {"$push": {"id": {"$toString": "$_id"}, "quality": {"$ifNull": ["$quality", "HD"]}}}}},
-            {"$sort": {"created_at": -1}}, {"$skip": skip}, {"$limit": limit}
+            {"$sort": sort_stage}, {"$skip": skip}, {"$limit": limit}
         ]
         total_groups = (await db.movies.aggregate([{"$match": match_stage}, {"$group": {"_id": "$title"}}, {"$count": "total"}]).to_list(1))
         total_pages = (total_groups[0]["total"] + limit - 1) // limit if total_groups else 0
