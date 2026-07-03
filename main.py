@@ -14,25 +14,26 @@ from api.routes import api_router
 import bot.handlers
 from bot.workers import video_queue_worker, auto_delete_worker
 
-# ক্যাটাগরি সিডিং
 async def seed_categories():
     count = await db.categories.count_documents({})
     if count == 0:
         defaults = [
-            {"name": "18+ Adult", "icon": "fa-solid fa-user-lock"},
+            {"name": "Latest", "icon": "fa-solid fa-clock"},
+            {"name": "For You", "icon": "fa-solid fa-wand-magic-sparkles"},
+            {"name": "Trending", "icon": "fa-solid fa-fire"},
+            {"name": "Movies", "icon": "fa-solid fa-film"},
+            {"name": "Web-Series", "icon": "fa-solid fa-circle-play"}
+            {"name": "Hindi", "icon": "fa-solid fa-masks-theater"},
             {"name": "Action", "icon": "fa-solid fa-hand-fist"},
             {"name": "Anime", "icon": "fa-solid fa-ghost"},
             {"name": "Bangla", "icon": "fa-solid fa-clapperboard"},
             {"name": "Bangla Dubbed", "icon": "fa-solid fa-comment-dots"},
             {"name": "Dual Audio", "icon": "fa-solid fa-headphones"},
             {"name": "English", "icon": "fa-solid fa-video"},
-            {"name": "Hindi", "icon": "fa-solid fa-masks-theater"},
             {"name": "Hindi Dubbed", "icon": "fa-solid fa-comments"},
             {"name": "Horror", "icon": "fa-solid fa-skull"},
+            {"name": "18+ Adult", "icon": "fa-solid fa-user-lock"},
             {"name": "Korean", "icon": "fa-solid fa-tv"},
-            {"name": "Trending", "icon": "fa-solid fa-fire"},
-            {"name": "Movies", "icon": "fa-solid fa-film"},
-            {"name": "Web-Series", "icon": "fa-solid fa-circle-play"}
         ]
         await db.categories.insert_many(defaults)
 
