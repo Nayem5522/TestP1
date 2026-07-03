@@ -22,7 +22,7 @@ async def seed_categories():
             {"name": "For You", "icon": "fa-solid fa-wand-magic-sparkles"},
             {"name": "Trending", "icon": "fa-solid fa-fire"},
             {"name": "Movies", "icon": "fa-solid fa-film"},
-            {"name": "Web-Series", "icon": "fa-solid fa-circle-play"}
+            {"name": "Web-Series", "icon": "fa-solid fa-circle-play"},
             {"name": "Hindi", "icon": "fa-solid fa-masks-theater"},
             {"name": "Action", "icon": "fa-solid fa-hand-fist"},
             {"name": "Anime", "icon": "fa-solid fa-ghost"},
