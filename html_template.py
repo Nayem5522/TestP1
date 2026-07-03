@@ -340,11 +340,7 @@ HTML_CODE = r"""
         
         .title-text { color: #f8fafc; font-size: 16px; font-weight: bold; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-top: 2px; }
 
-        .top-badge, .ep-badge, .view-badge { position: absolute; font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 11px; z-index: 10; color: white;}
-        .top-badge { top: 10px; left: 10px; background: linear-gradient(45deg, #ff0000, #cc0000); }
-        .view-badge { bottom: 10px; left: 10px; background: rgba(0,0,0,0.75); }
-        .ep-badge { top: 10px; right: 10px; background: #10b981; }
-
+        
         .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 10px 15px 30px; flex-wrap: wrap; }
         .page-btn { background: #1e293b; color: #fff; border: 1px solid #334155; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; outline: none; transition: 0.2s;}
         .page-btn:hover { background: #334155; }
@@ -436,23 +432,40 @@ HTML_CODE = r"""
             80% { opacity: 0.8; }
             100% { transform: translateY(-110vh) rotate(360deg) scale(1.3); opacity: 0; }
 }
-/* 🔥 ডাইনামিক জ্বলন্ত ফায়ার ইমোজি স্টাইল */
-        .trending-fire-icon {
-            display: inline-block;
-            font-size: 22px;
-            margin-right: 8px;
-            animation: flickerFlame 0.8s ease-in-out infinite alternate;
-            /* লাল ব্যাকগ্রাউন্ডের ওপরেও যেন উজ্জ্বল দেখায় সেজন্য ডুয়াল নিওন গ্লো ফিল্টার */
-            filter: drop-shadow(0 0 12px #ffaa00) drop-shadow(0 0 4px #ff3300);
-            vertical-align: middle;
+
+/* 🎨 UNIFIED BADGE STYLES (NO CONFLICTS) */
+        .top-badge, .ep-badge, .view-badge { 
+            position: absolute; 
+            font-weight: bold; 
+            padding: 4px 8px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+            z-index: 10; 
+            color: white;
+        }
+        .top-badge { 
+            top: 10px; 
+            left: 10px; 
+            background: linear-gradient(45deg, #ff0000, #cc0000); 
+        }
+        .view-badge { 
+            bottom: 10px; 
+            left: 10px; 
+            background: rgba(0,0,0,0.75); 
+        }
+        /* ep-badge-কে আমরা নিচে ডানদিকে নিয়ে গেলাম যাতে ওপরের কোণায় লাল ল্যাঙ্গুয়েজ ব্যাজটি সুন্দরভাবে বসতে পারে */
+        .ep-badge { 
+            bottom: 10px; 
+            right: 10px; 
+            background: #10b981; 
         }
 
-        /* 🏷️ ডাইনামিক ল্যাঙ্গুয়েজ ব্যাজ (তেরা গ্লসি সুইপ অ্যানিমেশন সহ) */
+        /* 🏷️ ডাইনামিক ল্যাঙ্গুয়েজ ব্যাজ - ডানদিকের ওপরের কোণায় (Top-Right) */
         .lang-card-badge {
             position: absolute;
             top: 10px;
             right: 10px;
-            background: linear-gradient(135deg, #ef4444, #dc2626); /* প্রমিজিং ভাইব্রেন্ট রেড */
+            background: linear-gradient(135deg, #ef4444, #dc2626);
             color: #ffffff !important;
             font-size: 10px;
             font-weight: 900;
@@ -461,7 +474,7 @@ HTML_CODE = r"""
             text-transform: uppercase;
             box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
             z-index: 10;
-            overflow: hidden; /* গ্লসি সুইপটি ক্লিপ করার জন্য */
+            overflow: hidden;
             letter-spacing: 0.5px;
         }
 
@@ -479,7 +492,7 @@ HTML_CODE = r"""
                 rgba(255, 255, 255, 0.45), 
                 transparent
             );
-            transform: skewX(-25deg); /* তেরা ভাবে ডায়াগনাল স্ল্যান্ট */
+            transform: skewX(-25deg); /* তেরা ভাবে স্ল্যান্ট */
             animation: sweepGlossy 2.5s infinite ease-in-out;
         }
 
@@ -489,18 +502,22 @@ HTML_CODE = r"""
             100% { left: 150%; }
         }
 
-        /* কোয়ালিটি বা এপিসোড কাউন্ট ব্যাজটি নিচে ডানে সরিয়ে নেওয়া হলো */
-        .ep-badge { 
-            position: absolute;
-            bottom: 10px; 
-            right: 10px; 
-            background: #10b981; 
-            font-weight: bold; 
-            padding: 4px 8px; 
-            border-radius: 6px; 
-            font-size: 11px; 
-            z-index: 10; 
-            color: white;
+        /* 🔥 স্লাইডার ব্যাজের জন্য স্পেশাল ছোট জ্বলন্ত ফায়ার ইমোজি ক্লাস */
+        .top-badge-fire {
+            display: inline-block;
+            font-size: 13px;
+            margin-right: 4px;
+            animation: flickerFlame 0.8s ease-in-out infinite alternate;
+        }
+
+        /* হেডার জ্বলন্ত ফায়ার ইমোজি স্টাইল */
+        .trending-fire-icon {
+            display: inline-block;
+            font-size: 22px;
+            margin-right: 8px;
+            animation: flickerFlame 0.8s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 12px #ffaa00) drop-shadow(0 0 4px #ff3300);
+            vertical-align: middle;
         }
     </style>
 </head>
@@ -1437,14 +1454,10 @@ HTML_CODE = r"""
                 if(data.length === 0) return document.getElementById('trendingWrapper').style.display = 'none';
                 grid.innerHTML = data.map(m => {
                     loadedMovies[m._id] = m;
-                    
-                    // ভাষা ডিটেক্ট করা হচ্ছে
-                    let langBadge = detectLanguage(m._id);
-                    
                     return `<div class="trending-card" onclick="openQualityModal(this)" data-title="${encodeURIComponent(m._id)}">
                         <div class="post-content">
-                            <div class="top-badge"><span class="trending-fire-icon">🔥</span> TOP</div>
-                            <div class="lang-card-badge">${langBadge}</div>
+                            <!-- ছোট জ্বলন্ত ফায়ার ইমোজি সহ TOP ব্যাজ -->
+                            <div class="top-badge"><span class="top-badge-fire">🔥</span> TOP</div>
                             <img src="/api/image/${m.photo_id}" loading="lazy" onerror="this.src='https://via.placeholder.com/640x360?text=No+Image'">
                             <div class="ep-badge"><i class="fa-solid fa-list"></i> ${m.files.length}</div>
                             <div class="view-badge" id="trend-view-${makeSafeId(m._id)}"><i class="fa-solid fa-eye"></i> ${formatViews(m.clicks)}</div>
@@ -1475,12 +1488,13 @@ HTML_CODE = r"""
                 data.movies.forEach((m, index) => {
                     loadedMovies[m._id] = m; 
                     
-                    // ভাষা ডিটেক্ট করা হচ্ছে
+                    // ভাষা স্বয়ংক্রিয়ভাবে ডিটেক্ট করা হচ্ছে
                     let langBadge = detectLanguage(m._id);
                     
                     let cardHtml = `<div class="card" onclick="openQualityModal(this)" data-title="${encodeURIComponent(m._id)}">
                         <div class="post-content">
-                            <div class="lang-card-badge">${langBadge}</div>
+                            <!-- ডাইনামিক গোল্ডেন-বেগুনি শ্যাডো সহ স্টার স্টার আইকন এবং ভাষা ব্যাজ -->
+                            <div class="lang-badge">${langBadge}</div>
                             <img src="/api/image/${m.photo_id}" loading="lazy" onerror="this.src='https://via.placeholder.com/640x360?text=No+Image'">
                             <div class="ep-badge"><i class="fa-solid fa-list"></i> ${m.files.length}</div>
                             <div class="view-badge" id="list-view-${makeSafeId(m._id)}"><i class="fa-solid fa-eye"></i> ${formatViews(m.clicks)}</div>
@@ -1504,16 +1518,9 @@ HTML_CODE = r"""
                 
                 let html = "";
                 if(data.total_pages > 1) {
-                    html += `<button class="page-btn" ${currentPage === 1 ? 'disabled style="opacity:0.5;"' : ''} onclick="loadMovies(${currentPage - 1}); window.scrollTo({ top: document.getElementById('recentTitle').offsetTop - 60, behavior: 'smooth' });"><i class="fa-solid fa-angle-left"></i></button>`;
-                    
-                    let startP = Math.max(1, currentPage - 1);
-                    let endP = Math.min(data.total_pages, currentPage + 1);
-                    
-                    for(let i=startP; i<=endP; i++) { 
-                        html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="loadMovies(${i}); window.scrollTo({ top: document.getElementById('recentTitle').offsetTop - 60, behavior: 'smooth' });">${i}</button>`; 
-                    }
-                    
-                    html += `<button class="page-btn" ${currentPage === data.total_pages ? 'disabled style="opacity:0.5;"' : ''} onclick="loadMovies(${currentPage + 1}); window.scrollTo({ top: document.getElementById('recentTitle').offsetTop - 60, behavior: 'smooth' });"><i class="fa-solid fa-angle-right"></i></button>`;
+                    html += `<button class="page-btn" ${currentPage === 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : 'class="page-btn" onclick="loadMovies(' + (currentPage - 1) + ')"'}>Prev</button>`;
+                    html += `<span class="page-info" style="font-weight:bold; font-size:14px; color:#cbd5e1; margin: 0 10px;">Page ${currentPage} of ${data.total_pages}</span>`;
+                    html += `<button class="page-btn" ${currentPage === data.total_pages ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : 'class="page-btn" onclick="loadMovies(' + (currentPage + 1) + ')"'}>Next</button>`;
                 }
                 document.getElementById('paginationBox').innerHTML = html;
             } catch(e) {}
