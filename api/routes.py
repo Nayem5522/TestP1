@@ -1038,20 +1038,20 @@ async def trending_movies(uid: int = 0):
         for f in m["files"]: f["is_unlocked"] = f["id"] in unlocked_ids
     return movies
 
-# ১. ক্যাটাগরি লিস্ট রিড করার এন্ডপয়েন্ট
 @api_router.get("/api/categories")
 async def get_categories():
-    cursor = db.categories.find().sort("name", 1)
+    # 'order' ফিল্ড অনুযায়ী ১ থেকে ১৬ ক্রমানুসারে সর্ট করা হচ্ছে
+    cursor = db.categories.find().sort("order", 1)
     categories = await cursor.to_list(length=100)
     result = []
     for c in categories:
         result.append({"name": c["name"], "icon": c.get("icon", "fa-solid fa-film")})
     return result
 
-# ২. ড্যাশবোর্ডের জন্য ফুল লিস্ট (আইডি সহ)
 @api_router.get("/api/admin/categories/all")
 async def admin_get_all_categories(auth: bool = Depends(verify_admin)):
-    cursor = db.categories.find().sort("name", 1)
+    # 'order' ফিল্ড অনুযায়ী সর্ট করা হচ্ছে
+    cursor = db.categories.find().sort("order", 1)
     categories = await cursor.to_list(length=100)
     for c in categories:
         c["_id"] = str(c["_id"])
