@@ -41,43 +41,90 @@ HTML_CODE = r"""
 
         .search-box { padding: 15px; }
         .search-input { width: 100%; padding: 16px; border-radius: 25px; border: none; outline: none; text-align: center; background: #1e293b; color: #fff; font-size: 18px; font-weight: bold; }
-        /* 🎨 PREMIUM PILL-SHAPED CATEGORY BUTTONS */
+       
+        
+        /* 🎨 DYNAMIC CATEGORIES - PILL SHAPED DYNAMIC SHADOWS */
         .category-container {
             display: flex;
-            flex-wrap: wrap; 
-            gap: 10px;
-            padding: 15px;
-            justify-content: center; 
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            gap: 12px;
+            padding: 15px 15px 22px; 
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
             width: 100%;
         }
+        .category-container::-webkit-scrollbar {
+            display: none; 
+        }
+        
+        /* আন-সিলেক্টড বাটনের সাধারণ ছাই ব্যাকগ্রাউন্ড */
         .cat-btn {
-            background: rgba(30, 41, 59, 0.6);
-            color: #cbd5e1;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 10px 20px;
-            border-radius: 30px; /* পারফেক্ট ক্যাপসুল/পিল শেপ */
-            font-size: 13px;
+            background: #e2e8f0;
+            color: #0f172a;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-size: 14px;
             font-weight: 800;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             white-space: nowrap;
-            transition: all 0.3s ease;
-            position: relative;
-            /* সাধারণ বাটনের জন্য ব্রিদিং শ্যাডো পালস */
-            animation: btnShadowPulse 3s infinite ease-in-out;
+            transition: all 0.25s ease;
+            /* সাধারণ বাটনের জন্য ব্রিদিং শ্যাডো অ্যানিমেশন */
+            animation: unselectedPulse 3s infinite ease-in-out;
+        }
+        .cat-btn i {
+            font-size: 13px;
+            color: #475569;
+        }
+        .cat-btn:active {
+            transform: scale(0.95);
         }
         
-        /* একটিভ বাটন - গর্জিয়াস অরেঞ্জ-রেড গ্লোয়িং থিম */
-        .cat-btn.active {
-            background: linear-gradient(135deg, #ff4e2a, #ff7300);
-            color: #ffffff;
-            border-color: transparent;
-            animation: activeBtnShadowPulse 2s infinite ease-in-out; /* বড় হওয়া এবং শ্যাডো পালস */
+        /* 🕰️ Latest (Active) বাটন - সলিড কোরাল-অরেঞ্জ ব্যাকগ্রাউন্ড এবং পালসিং অরেঞ্জ শ্যাডো */
+        .cat-btn.active-latest {
+            background: linear-gradient(135deg, #ff4e2a, #ff7300) !important;
+            color: #ffffff !important;
+            animation: activeLatestPulse 2s infinite ease-in-out !important;
+        }
+        .cat-btn.active-latest i {
+            color: #ffffff !important;
         }
 
-        /* 🕰️ ১. Latest (ঘড়ি) আইকন অ্যানিমেশন - কাঁটা ঘোরার মতো ঘুরতে থাকবে */
+        /* ✦ For You (Active) বাটন - সলিড সাদা ব্যাকগ্রাউন্ড, বেগুনি টেক্সট এবং ডার্ক বেগুনি পালসিং শ্যাডো */
+        .cat-btn.active-foryou {
+            background: #ffffff !important;
+            color: #7c3aed !important;
+            animation: activeForYouPulse 2s infinite ease-in-out !important;
+        }
+        .cat-btn.active-foryou .sparkle-icon {
+            color: #7c3aed !important;
+        }
+
+        /* সাধারণ একটিভ বাটন স্টাইল */
+        .cat-btn.active {
+            background: linear-gradient(135deg, #ff4e2a, #ff7300);
+            color: #ffffff !important;
+            animation: activeLatestPulse 2s infinite ease-in-out !important;
+        }
+        .cat-btn.active i {
+            color: #ffffff !important;
+        }
+
+        /* ✦ স্পেশাল ডাইনামিক স্টার আইকন স্টাইল */
+        .sparkle-icon {
+            display: inline-block;
+            font-size: 18px;
+            font-family: serif;
+            color: #7c3aed;
+            animation: sparkleStar 2.2s ease-in-out infinite;
+            line-height: 1;
+        }
+
+        /* 🕰️ ঘড়ি আইকন অ্যানিমেশন */
         .cat-btn i.fa-clock, .fa-clock-rotate-left {
             display: inline-block;
             animation: spinClock 6s linear infinite;
@@ -87,95 +134,39 @@ HTML_CODE = r"""
             100% { transform: rotate(360deg); }
         }
 
-        /* ✨ ২. For You (স্টার/স্পার্কল) আইকন অ্যানিমেশন - বড় হয়ে তেড়া হবে এবং আগের জায়গায় ফিরবে */
-        .cat-btn i.fa-wand-magic-sparkles, .cat-btn i.fa-star {
-            display: inline-block;
-            animation: sparkleStar 2.2s ease-in-out infinite;
-        }
+        /* ✦ স্টার অ্যানিমেশন - হালকা বড় এবং তেড়া হবে */
         @keyframes sparkleStar {
             0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.3) rotate(20deg); filter: drop-shadow(0 0 6px #00ffd5); }
+            50% { transform: scale(1.3) rotate(20deg); }
         }
 
-        /* 🔥 ৩. Trending (আগুন) আইকন অ্যানিমেশন - বাস্তবের আগুনের মতো কাঁপতে থাকবে */
+        /* 🔥 আগুন আইকন অ্যানিমেশন */
         .fa-fire, .fa-fire-flame-curved {
             display: inline-block;
             animation: flickerFlame 0.8s ease-in-out infinite alternate;
             color: #ff4e2a !important;
         }
         @keyframes flickerFlame {
-            0% { transform: scale(1) rotate(-3deg); filter: brightness(1); }
-            100% { transform: scale(1.18) rotate(4deg); filter: brightness(1.25) drop-shadow(0 0 8px #ff7300); }
+            0% { transform: scale(1) rotate(-3deg); }
+            100% { transform: scale(1.18) rotate(4deg); }
         }
 
-        /* 🌟 ৪. বাটনগুলোর জন্য ব্রিদিং পালস এবং শ্যাডো অ্যানিমেশন */
-        @keyframes btnShadowPulse {
-            0%, 100% { box-shadow: 0 4px 10px rgba(0,0,0,0.3); transform: scale(1); }
-            50% { box-shadow: 0 4px 16px rgba(255,255,255,0.06); transform: scale(0.98); }
+        /* 🌟 ব্রিদিং শ্যাডো অ্যানিমেশন কি-ফ্রেম সমূহ (শ্যাডো গাঢ় হবে আবার কমে যাবে) */
+        @keyframes unselectedPulse {
+            0%, 100% { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15); transform: scale(1); }
+            50% { box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35); transform: scale(0.98); }
         }
-        @keyframes activeBtnShadowPulse {
-            0%, 100% { box-shadow: 0 4px 12px rgba(255, 78, 42, 0.4); transform: scale(1); }
-            50% { box-shadow: 0 4px 22px rgba(255, 78, 42, 0.85); transform: scale(1.04); }
+        @keyframes activeLatestPulse {
+            0%, 100% { box-shadow: 0 4px 10px rgba(255, 78, 42, 0.4); transform: scale(1); }
+            50% { box-shadow: 0 4px 28px rgba(255, 78, 42, 0.9); transform: scale(1.03); }
         }
-
+        @keyframes activeForYouPulse {
+            0%, 100% { box-shadow: 0 4px 10px rgba(124, 58, 237, 0.4); transform: scale(1); }
+            50% { box-shadow: 0 4px 28px rgba(124, 58, 237, 0.9); transform: scale(1.03); }
+        }
 
 
         
-        .cat-btn i {
-            font-size: 11px;
-            color: #00ffd5;
-        }
-        .cat-btn:active {
-            transform: scale(0.95);
-        }
-        .cat-btn.active {
-            background-image: linear-gradient(#ef4444, #ef4444), linear-gradient(135deg, #ef4444, #f97316);
-            box-shadow: 0 0 12px rgba(239, 68, 68, 0.7);
-        }
-        .cat-btn.active i {
-            color: #fff;
-        }
-        /* আরজিবি অ্যানিমেশন কি-ফ্রেম */
-        @keyframes rgbPulse {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .cat-btn {
-            background: #000000;
-            color: #ffffff;
-            border: 2px solid transparent;
-            /* আরজিবি কালার বর্ডার তৈরির জন্য */
-            background-image: linear-gradient(#000, #000), linear-gradient(135deg, #ff0055, #00ffd5);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            padding: 8px 18px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-        }
-        .cat-btn i {
-            font-size: 14px;
-            color: #00ffd5;
-        }
-        .cat-btn:active {
-            transform: scale(0.95);
-        }
-        /* বাটনটি একটিভ/সিলেক্টড অবস্থায় থাকলে লাল-কমলা থিম হবে */
-        .cat-btn.active {
-            background-image: linear-gradient(#ef4444, #ef4444), linear-gradient(135deg, #ef4444, #f97316);
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
-        }
-        .cat-btn.active i {
-            color: #fff;
-        }
         .section-title { padding: 5px 15px 15px; font-size: 20px; font-weight: 900; display: flex; align-items: center; gap: 8px; color:#ff416c; }
         
         .trending-container { display: flex; overflow-x: auto; gap: 15px; padding: 0 15px 20px; scroll-behavior: smooth; scroll-snap-type: x mandatory; }
@@ -1290,18 +1281,60 @@ HTML_CODE = r"""
                 const cats = await res.json();
                 if(cats.length === 0) return;
                 
-                // ডিফল্ট All বাটনে Home আইকন থাকবে
-                let html = `<button class="cat-btn active" onclick="setCategory('', this)"><i class="fa-solid fa-house"></i> All</button>`;
-                cats.forEach(c => { 
-                    html += `<button class="cat-btn" onclick="setCategory('${c.name.replace(/'/g, "\\'")}', this)"><i class="${c.icon || 'fa-solid fa-film'}"></i> ${c.name}</button>`; 
+                let html = '';
+                cats.forEach((c, idx) => {
+                    let catQuery = c.name === "Latest" ? "" : c.name.replace(/'/g, "\\'");
+                    
+                    // প্রথম বাটন 'Latest' এর জন্য স্পেশাল একটিভ ক্লাস
+                    let btnClass = "cat-btn";
+                    if (idx === 0) {
+                        btnClass += " active active-latest";
+                    }
+                    
+                    // 'For You' এর জন্য স্পেশাল স্টার ✦ আইকন
+                    let iconHtml = "";
+                    if (c.name === "For You") {
+                        iconHtml = `<span class="sparkle-icon">✦</span>`;
+                    } else {
+                        iconHtml = `<i class="${c.icon || 'fa-solid fa-film'}"></i>`;
+                    }
+                    
+                    html += `<button class="${btnClass}" onclick="setCategory('${catQuery}', this)"><span style="display:flex; align-items:center; gap:8px;">${iconHtml} ${c.name}</span></button>`;
                 });
                 document.getElementById('categoryBox').innerHTML = html;
             } catch(e) {}
         }
-        function setCategory(cat, btnElement) {
+
+        function setCategory(cat, btn) {
             activeCategory = cat;
-            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            btnElement.classList.add('active');
+            
+            // পূর্বের একটিভ ক্লাসগুলো রিমুভ করা হচ্ছে
+            document.querySelectorAll('.cat-btn').forEach(b => {
+                b.classList.remove('active', 'active-latest', 'active-foryou');
+            });
+            
+            // ক্লিক করা বাটনের নাম অনুযায়ী কাস্টম একটিভ ক্লাস সেট করা হচ্ছে
+            let btnText = btn.innerText.trim();
+            if (btnText.includes("Latest")) {
+                btn.classList.add('active', 'active-latest');
+            } else if (btnText.includes("For You")) {
+                btn.classList.add('active', 'active-foryou');
+            } else {
+                btn.classList.add('active');
+            }
+            
+            // 🍿 ডাইনামিক হেডার টেক্সট সেটআপ
+            let titleEl = document.getElementById('recentTitle');
+            if (cat === "") {
+                titleEl.innerHTML = `<i class="fa-solid fa-clock text-blue-400"></i> Discover Latest Blockbusters`;
+            } else if (cat === "For You") {
+                titleEl.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Handpicked For You`;
+            } else if (cat === "Trending") {
+                titleEl.innerHTML = `<i class="fa-solid fa-fire text-orange-500"></i> Trending Worldwide`;
+            } else {
+                titleEl.innerHTML = `<i class="fa-solid fa-film text-red-500"></i> Explored ${btnText} Collection`;
+            }
+
             searchQuery = ""; 
             document.getElementById('searchInput').value = "";
             document.getElementById('trendingWrapper').style.display = cat === "" ? 'block' : 'none';
