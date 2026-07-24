@@ -1277,9 +1277,12 @@ async def receive_movie_quality(m: types.Message, state: FSMContext):
     await state.update_data(quality=m.text.strip(), selected_categories=[])
     await state.set_state(AdminStates.waiting_for_category)
     
+    # get_category_keyboard এর আগে await যোগ করা হয়েছে
+    markup = await get_category_keyboard([])
+    
     await m.answer(
         "✅ কোয়ালিটি সেভ হয়েছে!\n\n👇 নিচে দেওয়া বাটনগুলো থেকে এক বা একাধিক ক্যাটাগরি সিলেক্ট করুন। সিলেক্ট করা হয়ে গেলে নিচে <b>'Complete'</b> বাটনে চাপুন:",
-        reply_markup=get_category_keyboard([]),
+        reply_markup=markup,
         parse_mode="HTML"
     )
     
@@ -1306,7 +1309,8 @@ async def handle_category_selection(c: types.CallbackQuery, state: FSMContext):
         
         # কিবোর্ড আপডেট করে টিকমার্ক দেখানো হচ্ছে
         try:
-            await c.message.edit_reply_markup(reply_markup=get_category_keyboard(selected_cats))
+            markup = await get_category_keyboard(selected_cats)
+            await c.message.edit_reply_markup(reply_markup=markup)
         except Exception:
             pass
         await c.answer(f"Selected: {action}")
