@@ -1002,7 +1002,8 @@ async def trending_movies(uid: int = 0):
             {"$group": {
                 "_id": "$title", 
                 "photo_id": {"$first": "$photo_id"}, 
-                "db_photo_id": {"$first": "$db_photo_id"}, 
+                "db_photo_id": {"$first": "$db_photo_id"},
+                "badge": {"$first": "$badge"},
                 "clicks": {"$sum": "$clicks"}, 
                 "files": {"$push": {"id": {"$toString": "$_id"}, "quality": {"$ifNull": ["$quality", "HD"]}}}
             }},
@@ -1106,7 +1107,7 @@ async def list_movies(page: int = 1, q: str = "", uid: int = 0, cat: str = ""):
 
         pipeline = [
             {"$match": match_stage},
-            {"$group": {"_id": "$title", "photo_id": {"$first": "$photo_id"}, "db_photo_id": {"$first": "$db_photo_id"}, "clicks": {"$sum": "$clicks"}, "created_at": {"$max": "$created_at"}, "files": {"$push": {"id": {"$toString": "$_id"}, "quality": {"$ifNull": ["$quality", "HD"]}}}}},
+            {"$group": {"_id": "$title", "photo_id": {"$first": "$photo_id"}, "db_photo_id": {"$first": "$db_photo_id"}, "badge": {"$first": "$badge"}, "clicks": {"$sum": "$clicks"}, "created_at": {"$max": "$created_at"}, "files": {"$push": {"id": {"$toString": "$_id"}, "quality": {"$ifNull": ["$quality", "HD"]}}}}},
             {"$sort": sort_stage}, {"$skip": skip}, {"$limit": limit}
         ]
         total_groups = (await db.movies.aggregate([{"$match": match_stage}, {"$group": {"_id": "$title"}}, {"$count": "total"}]).to_list(1))
