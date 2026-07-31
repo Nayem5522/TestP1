@@ -1487,7 +1487,7 @@ HTML_CODE = r"""
                     loadedMovies[m._id] = m; 
                     
                     // ভাষা স্বয়ংক্রিয়ভাবে ডিটেক্ট করা হচ্ছে
-                    let langBadge = detectLanguage(m._id);
+                    let langBadge = m.badge ? m.badge : detectLanguage(m._id);
                     
                     let cardHtml = `<div class="card" onclick="openQualityModal(this)" data-title="${encodeURIComponent(m._id)}">
                         <div class="post-content">
