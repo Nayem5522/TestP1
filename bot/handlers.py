@@ -35,7 +35,8 @@ class AdminStates(StatesGroup):
     waiting_for_reply = State()
     waiting_for_photo = State()
     waiting_for_title = State()
-    waiting_for_quality = State() 
+    waiting_for_quality = State()
+    waiting_for_badge = State() 
     waiting_for_category = State()
     waiting_for_series_search = State()
     waiting_for_episode_quality = State()
@@ -1274,14 +1275,44 @@ async def receive_movie_title(m: types.Message, state: FSMContext):
 
 @dp.message(AdminStates.waiting_for_quality, F.text)
 async def receive_movie_quality(m: types.Message, state: FSMContext):
-    await state.update_data(quality=m.text.strip(), selected_categories=[])
-    await state.set_state(AdminStates.waiting_for_category)
+    await state.update_data(quality=m.text.strip())
+    await state.set_state(AdminStates.waiting_for_badge)
     
-    # get_category_keyboard এর আগে await যোগ করা হয়েছে
-    markup = await get_category_keyboard([])
+    # কুইক সেকশনের ইনলাইন বাটন
+    kb = [
+        [types.InlineKeyboardButton(text="🔉 Bangla", callback_data="badge_Bangla"), types.InlineKeyboardButton(text="🍿 Hindi", callback_data="badge_Hindi")],
+        [types.InlineKeyboardButton(text="🎧 Dual Audio", callback_data="badge_Dual Audio"), types.InlineKeyboardButton(text="🔊 English", callback_data="badge_English")],
+        [types.InlineKeyboardButton(text="🔥 4K UHD", callback_data="badge_4K UHD"), types.InlineKeyboardButton(text="📺 Web-Series", callback_data="badge_Series")],
+        [types.InlineKeyboardButton(text="⏭️ Skip (Auto Detect)", callback_data="badge_skip")]
+    ]
+    markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
     
     await m.answer(
-        "✅ কোয়ালিটি সেভ হয়েছে!\n\n👇 নিচে দেওয়া বাটনগুলো থেকে এক বা একাধিক ক্যাটাগরি সিলেক্ট করুন। সিলেক্ট করা হয়ে গেলে নিচে <b>'Complete'</b> বাটনে চাপুন:",
+        "✅ কোয়ালিটি সেভ হয়েছে!\n\n🏷️ এবার ছবির ডান কোণার **কাস্টম ব্যাজ (Badge)** নির্বাচন করুন অথবা ম্যানুয়ালি লিখে পাঠান:",
+        reply_markup=markup,
+        parse_mode="HTML"
+    )
+
+# ব্যাজ বাটন ক্লিক বা কাস্টম টাইপ হ্যান্ডলার
+@dp.message(AdminStates.waiting_for_badge)
+@dp.callback_query(AdminStates.waiting_for_badge, F.data.startswith("badge_"))
+async def receive_movie_badge(event, state: FSMContext):
+    badge_val = ""
+    if isinstance(event, types.CallbackQuery):
+        data = event.data.split("_", 1)[1]
+        badge_val = "" if data == "skip" else data
+        await event.answer()
+        message = event.message
+    else:
+        badge_val = event.text.strip()
+        message = event
+        
+    await state.update_data(badge=badge_val, selected_categories=[])
+    await state.set_state(AdminStates.waiting_for_category)
+    
+    markup = await get_category_keyboard([])
+    await message.answer(
+        f"✅ ব্যাজ <b>'{badge_val or 'Auto Detect'}'</b> সেভ হয়েছে!\n\n👇 এবার এক বা একাধিক ক্যাটাগরি সিলেক্ট করুন:",
         reply_markup=markup,
         parse_mode="HTML"
     )
@@ -1323,12 +1354,14 @@ async def save_movie_final(message: types.Message, state: FSMContext, categories
     title = data["title"]
     photo_id = data["photo_id"]
     quality = data["quality"]
+    badge = data.get("badge", "") 
     
     await db.movies.insert_one({
         "title": title, "quality": quality, "photo_id": photo_id, 
         "file_id": data["file_id"], "file_type": data["file_type"],
         "db_file_id": data.get("db_file_id"), "db_photo_id": data.get("db_photo_id"),
         "categories": categories,
+        "badge": badge,
         "clicks": 0, "created_at": datetime.datetime.utcnow()
     })
     clear_app_cache() 
