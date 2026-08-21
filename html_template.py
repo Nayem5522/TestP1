@@ -1269,55 +1269,55 @@ HTML_CODE = r"""
         }
 
         async function fetchMovieComments(title) {
-            try {
-                const res = await fetch(`/api/reviews/get/${encodeURIComponent(title)}`);
-                const data = await res.json();
-                let html = '';
-                
-                if (data.reviews.length === 0) {
-                    html = `<div style="text-align:center; padding: 25px 10px; color:#94a3b8; font-size:14px;"><i class="fa-regular fa-comment-dots" style="font-size:24px; margin-bottom:8px; display:block;"></i>এখনো কোনো কমেন্ট করা হয়নি। প্রথম কমেন্টটি আপনিই করুন!</div>`;
-                } else {
-                    data.reviews.forEach(r => {
-                        let avatarHtml = r.is_admin ? 
-                            `<div class="comment-avatar-admin"><i class="fa-solid fa-crown"></i></div>` : 
-                            `<div class="comment-avatar-fallback">${r.uname.charAt(0)}</div>`;
+    try {
+        const res = await fetch(`/api/reviews/get/${encodeURIComponent(title)}`);
+        const data = await res.json();
+        let html = '';
+        
+        if (!data.reviews || data.reviews.length === 0) {
+            html = `<div style="text-align:center; padding: 25px 10px; color:#94a3b8; font-size:14px;"><i class="fa-regular fa-comment-dots" style="font-size:24px; margin-bottom:8px; display:block;"></i>এখনো কোনো কমেন্ট করা হয়নি। প্রথম কমেন্টটি আপনিই করুন!</div>`;
+        } else {
+            data.reviews.forEach(r => {
+                let avatarHtml = r.is_admin ? 
+                    `<div class="comment-avatar-admin"><i class="fa-solid fa-crown"></i></div>` : 
+                    `<div class="comment-avatar-fallback">${(r.uname || 'U').charAt(0)}</div>`;
 
-                        let adminTag = r.is_admin ? `<span class="comment-admin-badge">Admin</span>` : '';
-                        let replyToHtml = r.reply_to ? `<div class="comment-reply-to-text"><i class="fa-solid fa-reply"></i> Replying to @${r.reply_to}</div>` : '';
+                let adminTag = r.is_admin ? `<span class="comment-admin-badge">Admin</span>` : '';
+                let replyToHtml = r.reply_to ? `<div class="comment-reply-to-text"><i class="fa-solid fa-reply"></i> Replying to @${r.reply_to}</div>` : '';
 
-                        html += `
-                        <div class="comment-card-bubble">
-                            ${avatarHtml}
-                            <div class="comment-body-right">
-                                <div class="comment-author-name">
-                                    <span>${r.uname}</span> ${adminTag}
-                                    <span class="comment-time-ago">${r.time_ago}</span>
-                                </div>
-                                ${replyToHtml}
-                                <div class="comment-text-msg">${r.review}</div>
-                                <div class="comment-reply-bar">
-                                    <span onclick="likeComment('${r._id}', this)"><i class="fa-solid fa-thumbs-up text-yellow-400"></i> <b class="c-likes">${r.likes || 0}</b></span>
-                                    <span onclick="startReply('${r.uname}')"><i class="fa-solid fa-reply"></i> Reply</span>
-                                </div>
-                            </div>
-                        </div>`;
-                    });
-                }
-                document.getElementById('detailCommentsList').innerHTML = html;
-            } catch(e) {}
+                html += `
+                <div class="comment-card-bubble">
+                    ${avatarHtml}
+                    <div class="comment-body-right">
+                        <div class="comment-author-name">
+                            <span>${r.uname}</span> ${adminTag}
+                            <span class="comment-time-ago">${r.time_ago}</span>
+                        </div>
+                        ${replyToHtml}
+                        <div class="comment-text-msg">${r.review}</div>
+                        <div class="comment-reply-bar">
+                            <span onclick="likeComment('${r._id}', this)"><i class="fa-solid fa-thumbs-up text-yellow-400"></i> <b class="c-likes">${r.likes || 0}</b></span>
+                            <span onclick="startReply('${r.uname}')"><i class="fa-solid fa-reply"></i> Reply</span>
+                        </div>
+                    </div>
+                </div>`;
+            });
         }
+        document.getElementById('detailCommentsList').innerHTML = html;
+    } catch(e) {}
+}
 
-        function startReply(userName) {
-            activeReplyTarget = userName;
-            document.getElementById('replyTargetBanner').style.display = 'flex';
-            document.getElementById('replyTargetText').innerText = `Replying to @${userName}`;
-            document.getElementById('detailCommentInput').focus();
-        }
+function startReply(userName) {
+    activeReplyTarget = userName;
+    document.getElementById('replyTargetBanner').style.display = 'flex';
+    document.getElementById('replyTargetText').innerText = `Replying to @${userName}`;
+    document.getElementById('detailCommentInput').focus();
+}
 
-        function cancelReply() {
-            activeReplyTarget = "";
-            document.getElementById('replyTargetBanner').style.display = 'none';
-        }
+function cancelReply() {
+    activeReplyTarget = "";
+    document.getElementById('replyTargetBanner').style.display = 'none';
+}
 
         function focusCommentBox() {
             document.getElementById('detailCommentInput').focus();
@@ -1376,20 +1376,20 @@ HTML_CODE = r"""
         // 📦 কোয়ালিটি ড্রয়ার ও সরাসরি ফাইল ডেলিভারি
         // ==========================================================
         function openDownloadDrawer() {
-            if (!currentOpenMovie) return;
-            document.getElementById('drawerQualityList').innerHTML = currentOpenMovie.files.map(f => {
-                let isFree = f.is_unlocked || isUserVip;
-                let icon = isFree ? '<i class="fa-solid fa-paper-plane text-green-400"></i>' : '<i class="fa-solid fa-lock text-red-400"></i>';
-                return `
-                <div class="drawer-file-item" onclick="handleQualityClick('${f.id}', ${f.is_unlocked})">
-                    <div class="drawer-file-inner">
-                        <span><i class="fa-solid fa-download" style="margin-right:8px;"></i> ${f.quality}</span> 
-                        ${icon}
-                    </div>
-                </div>`;
-            }).join('');
-            document.getElementById('qualityDrawerModal').style.display = 'flex';
-        }
+    if (!currentOpenMovie) return;
+    document.getElementById('drawerQualityList').innerHTML = currentOpenMovie.files.map(f => {
+        let isFree = f.is_unlocked || isUserVip;
+        let icon = isFree ? '<i class="fa-solid fa-paper-plane text-green-400"></i>' : '<i class="fa-solid fa-lock text-red-400"></i>';
+        return `
+        <div class="drawer-file-item" onclick="handleQualityClick('${f.id}', ${f.is_unlocked})">
+            <div class="drawer-file-inner">
+                <span><i class="fa-solid fa-download" style="margin-right:8px;"></i> ${f.quality}</span> 
+                ${icon}
+            </div>
+        </div>`;
+    }).join('');
+    document.getElementById('qualityDrawerModal').style.display = 'flex';
+}
 
         function closeDownloadDrawer() {
             document.getElementById('qualityDrawerModal').style.display = 'none';
@@ -1762,18 +1762,19 @@ HTML_CODE = r"""
         }
 
         async function initApp() {
-            try {
-                await Promise.all([
-                    fetchUserInfo(),
-                    loadCategories(),
-                    loadTrending(),
-                    loadMovies(1)
-                ]);
-                renderCommunitySection();
-            } catch(e) {}
-        }
+    try {
+        await Promise.all([
+            fetchUserInfo(),
+            fetchActiveAds(),
+            loadCategories(),
+            loadTrending(),
+            loadMovies(1)
+        ]);
+        renderCommunitySection();
+    } catch(e) {}
+}
 
-        initApp();
+initApp();
     </script>
 </body>
 </html>
