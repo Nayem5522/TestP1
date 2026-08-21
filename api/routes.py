@@ -1357,7 +1357,7 @@ async def add_review(d: ReviewModel):
         "movie_title": d.title,
         "rating": d.rating if d.rating > 0 else 5,
         "review": d.review.strip(),
-        "reply_to": d.reply_to.strip(),
+        "reply_to": d.reply_to.strip() if hasattr(d, 'reply_to') else "",
         "likes": 0,
         "created_at": now
     }
